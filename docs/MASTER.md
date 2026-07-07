@@ -6,11 +6,11 @@
 
 ## 1. MACHINES
 
-### Server (plexy, 10.0.0.201)
+### Server (plexy, <server-ip>)
 ```
 CPU: Multi-core x86_64 | GPU: RTX 3090 Ti (NVENC 24GB)
 OS: Arch Linux LVM (root 86.8G ext4, home 24G ext4)
-NIC: enp6s0f0 | SSH: topaz@10.0.0.201 -p 2223
+NIC: enp6s0f0 | SSH: topaz@<server-ip> -p <ssh-port>
 
 DRIVES:
   sda2  18.2TB NTFS /mnt/20TB (64%, 7.5TB free) — media, downloads, Pipeline
@@ -19,15 +19,15 @@ DRIVES:
   nvme0  1.8TB ext4 UNMOUNTED — RETIRED (controller failure)
 ```
 
-### Laptop (10.0.0.234)
+### Laptop (<laptop-ip>)
 ```
 CPU: Dual-core | RAM: 3.7GB | OS: Ubuntu 24.04
-Disk: 232.9GB HDD | NIC: enp8s0 static 10.0.0.234/24 (WiFi MASKED)
-SSH: laptop@10.0.0.234 -p 2225
+Disk: 232.9GB HDD | NIC: enp8s0 static <laptop-ip>/24 (WiFi MASKED)
+SSH: laptop@<laptop-ip> -p <ssh-port>
 qBit: DL:15, Tor:200, Cache:1536MB | gluetun AirVPN Toronto
 ```
 
-### Desktop (10.0.0.192)
+### Desktop (<desktop-ip>)
 ```
 CachyOS | /mnt/500gb-1 — homelab backup target
 Pipeline-Doc: /home/topaz/home/Pipeline-Doc/
@@ -39,14 +39,14 @@ Pipeline-Doc: /home/topaz/home/Pipeline-Doc/
 
 ```
 Router: 10.0.0.1 (XFINITY) | Subnet: 10.0.0.0/24
-Server: 10.0.0.201 | Laptop: 10.0.0.234 | Desktop: 10.0.0.192
+Server: <server-ip> | Laptop: <laptop-ip> | Desktop: <desktop-ip>
 
-Port Forwards: 32400 TCP → 10.0.0.201 (Plex)
+Port Forwards: 32400 TCP → <server-ip> (Plex)
 VPN: AirVPN WireGuard, 184.75.208.10 (Toronto), endpoint 184.75.214.165:1637
      Killswitch: FIREWALL=on, ports: 51413, 8080
 
 UFW (server): deny incoming, allow outgoing
-  Open: 2223(SSH), 32400(Plex), 111+2049(NFS→laptop), 8090(Dashboard)
+  Open: <ssh-port>(SSH), 32400(Plex), 111+2049(NFS→laptop), 8090(Dashboard)
 ```
 
 ---
@@ -58,8 +58,8 @@ UFW (server): deny incoming, allow outgoing
 /mnt/8TB  (85%) — Movies 2, TV Shows 2 (balancer moves to 20TB at 85%)
 / (75%)         — Plex metadata (/var/lib/plex — MUST be ext4, NEVER NTFS)
 
-NFS: /mnt/20TB/homelab/media/downloads → 10.0.0.234 (rw, all_squash anonuid=1000)
-Laptop NFS: 10.0.0.201:/mnt/20TB/homelab/media/downloads → /mnt/server/downloads
+NFS: /mnt/20TB/homelab/media/downloads → <laptop-ip> (rw, all_squash anonuid=1000)
+Laptop NFS: <server-ip>:/mnt/20TB/homelab/media/downloads → /mnt/server/downloads
 ```
 
 ---
@@ -88,14 +88,14 @@ qbittorrent: lscr.io/linuxserver/qbittorrent:4.6.3 (network_mode: gluetun)
 ## 5. SERVICE PORTS
 
 ```
-qBit:       http://10.0.0.234:8080    (topaz / see info file)
-Radarr:     http://10.0.0.201:7878    API: see info
-Sonarr:     http://10.0.0.201:8989    API: see info
-Prowlarr:   http://10.0.0.201:9696    API: see info
-Plex:       http://10.0.0.201:32400   (Plex email — see info file)
-Dashboard:  http://10.0.0.201:8090
-Overseerr:  http://10.0.0.201:5055
-Tdarr:      http://10.0.0.201:8265
+qBit:       http://<laptop-ip>:8080    (topaz / see info file)
+Radarr:     http://<server-ip>:7878    API: see info
+Sonarr:     http://<server-ip>:8989    API: see info
+Prowlarr:   http://<server-ip>:9696    API: see info
+Plex:       http://<server-ip>:32400   (Plex email — see info file)
+Dashboard:  http://<server-ip>:8090
+Overseerr:  http://<server-ip>:5055
+Tdarr:      http://<server-ip>:8265
 ```
 
 ---
@@ -173,7 +173,7 @@ Creds: topaz / see info file
 Upgrades: YES, Cutoff: Bluray-1080p
 Allowed: HDTV-720p, WEB-720p, Bluray-720p, HDTV-1080p, WEB-1080p, Bluray-1080p
 Language: English default, dual audio for foreign/anime
-Download client: 10.0.0.234:8080, removeCompleted=TRUE
+Download client: <laptop-ip>:8080, removeCompleted=TRUE
 Remote map: /downloads/ → /mnt/20TB/homelab/media/downloads/
 Root folders: /mnt/20TB/Movies 1 (7.5TB), /mnt/8TB/Movies 2 (1.2TB)
 ```
@@ -183,7 +183,7 @@ Root folders: /mnt/20TB/Movies 1 (7.5TB), /mnt/8TB/Movies 2 (1.2TB)
 Upgrades: YES, Cutoff: Bluray-720p
 Allowed: HDTV-720p, WEB-720p, Bluray-720p
 Language: English default, dual audio for foreign/anime
-Download client: 10.0.0.234:8080, removeCompleted=TRUE
+Download client: <laptop-ip>:8080, removeCompleted=TRUE
 Remote map: /downloads/ → /mnt/20TB/homelab/media/downloads/
 Root folders: /mnt/20TB/TV Shows 1 (7.5TB), /mnt/8TB/TV Shows 2 (1.2TB)
 ```
@@ -269,7 +269,7 @@ Total loss:        THEORETICAL (10%)
 
 ### Quick Recovery
 ```
-LAPTOP DIES: Any Linux box. IP 10.0.0.234. Restore /home/laptop/pipeline/ from backup. docker-compose up.
+LAPTOP DIES: Any Linux box. IP <laptop-ip>. Restore /home/laptop/pipeline/ from backup. docker-compose up.
 SERVER DIES: Install Arch. Restore compose+fstab. docker compose up. systemctl enable plexmediaserver.
 PLEX DB CORRUPT: Stop Plex. Restore /var/lib/plex from backup. Start Plex.
 20TB DEAD: Replace drive. Format. Restore configs. *arr re-downloads all media.
@@ -308,14 +308,14 @@ Timers:   22 active
 ## 16. CREDENTIALS (references — raw values in /home/topaz/home/info)
 
 ```
-qBit:        http://10.0.0.234:8080  (topaz / see info)
+qBit:        http://<laptop-ip>:8080  (topaz / see info)
 Radarr API:  see info (e7746c...)
 Sonarr API:  see info (1b24c...)
 Prowlarr API: see info (1a32c...)
 TMDB API:    see info (5e00e...)
 Plex token:  see info (BJm8t...)
-Server SSH:  topaz@10.0.0.201 -p 2223
-Laptop SSH:  laptop@10.0.0.234 -p 2225
+Server SSH:  topaz@<server-ip> -p <ssh-port>
+Laptop SSH:  laptop@<laptop-ip> -p <ssh-port>
 VPN:         AirVPN WireGuard (keys in info file)
 ```
 
@@ -356,9 +356,9 @@ After any credentials appear in logs, chat, or documentation:
 ssh server pipeline-check
 
 # Web UIs
-http://10.0.0.201:7878 (Radarr)    http://10.0.0.201:8090 (Dashboard)
-http://10.0.0.201:8989 (Sonarr)    http://10.0.0.201:32400 (Plex)
-http://10.0.0.234:8080 (qBit)      http://10.0.0.201:9696 (Prowlarr)
+http://<server-ip>:7878 (Radarr)    http://<server-ip>:8090 (Dashboard)
+http://<server-ip>:8989 (Sonarr)    http://<server-ip>:32400 (Plex)
+http://<laptop-ip>:8080 (qBit)      http://<server-ip>:9696 (Prowlarr)
 
 # Manual actions
 ssh server /mnt/20TB/homelab/media/Pipeline/scripts/scan-now.sh  (discovery)
@@ -374,5 +374,5 @@ ssh server tail -20 /mnt/20TB/homelab/media/Pipeline/logs/torrent-doctor.log
 ssh server df -h /mnt/20TB /mnt/8TB /
 
 # qBit check
-ssh server 'curl -sL http://10.0.0.234:8080/api/v2/auth/login --data-urlencode username=topaz --data-urlencode password=(see info file)'
+ssh server 'curl -sL http://<laptop-ip>:8080/api/v2/auth/login --data-urlencode username=topaz --data-urlencode password=(see info file)'
 ```

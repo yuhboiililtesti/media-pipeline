@@ -1,0 +1,61 @@
+# Media Pipeline Central Configuration
+# All paths, keys, and settings in one place
+
+pipeline:
+  mode:
+    max_active_downloads: 50
+    max_active_torrents: 500
+    max_connections: 400
+    schedule:
+      max_time: "04:00"
+      med_time: "12:00"
+
+  discovery:
+    auto_add_threshold: 60
+    review_threshold: 35
+    max_per_day:
+      movies: 25
+      shows: 10
+    complete_only_mode: false
+    never_add: ""
+
+  storage:
+    drives:
+      - path: /mnt/20TB
+        warn_pct: 90
+        slow_pct: 95
+        stop_pct: 98
+      - path: /mnt/8TB
+        warn_pct: 85
+        stop_pct: 98
+
+  paths:
+    media_20tb: /mnt/20TB
+    media_8tb: /mnt/8TB
+    downloads: /mnt/20TB/downloads
+    movies_root: /mnt/20TB/Movies
+    tv_root: /mnt/20TB/TV Shows
+    encode_cache: /mnt/20TB/Encode-Tmp
+    backup_target: /mnt/backup
+
+  services:
+    radarr: { host: localhost, port: 7878 }
+    sonarr: { host: localhost, port: 8989 }
+    prowlarr: { host: localhost, port: 9696 }
+    plex: { host: localhost, port: 32400 }
+    tdarr: { host: localhost, port: 8265 }
+    qbit_overflow: { host: 127.0.0.1, port: 8083 }
+    qbit_laptop: { host: 10.0.0.234, port: 8080 }
+
+  timers:
+    torrent_doctor: 5
+    auto_import: 1
+    anti_dupe: 30
+    stalled_rescue: 15
+    container_watchdog: 5
+    health_score: 30
+    disk_guard: 15
+    nightly_backup: "03:00"
+    discovery_engine: "02:00"
+    integrity_check: "03:30"
+    auto_dedup: "weekly"
