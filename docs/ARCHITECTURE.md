@@ -14,7 +14,7 @@
                          ▼
                     DOWNLOAD LAYER
  ┌────────────────────────────────────────────┐
- │  LAPTOP (10.0.0.234)                      │
+ │  LAPTOP (<laptop-ip>)                      │
  │  ┌──────────────────────────────────┐     │
  │  │ gluetun — AirVPN WireGuard       │     │
  │  │  FIREWALL=on (killswitch)        │     │

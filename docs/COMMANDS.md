@@ -83,27 +83,27 @@ pipeline-config save                        # Backup all commands to Pipeline/ba
 
 ## Web UIs
 ```
-Dashboard:  http://10.0.0.201:8090
-qBit:       http://10.0.0.234:8080 (laptop VPN)
-Overflow:   http://10.0.0.201:8083 (server VPN)
-Radarr:     http://10.0.0.201:7878
-Sonarr:     http://10.0.0.201:8989
-Prowlarr:   http://10.0.0.201:9696
-Plex:       http://10.0.0.201:32400
-Overseerr:  http://10.0.0.201:5055
-Tdarr:      http://10.0.0.201:8265
+Dashboard:  http://<server-ip>:8090
+qBit:       http://<laptop-ip>:8080 (laptop VPN)
+Overflow:   http://<server-ip>:8083 (server VPN)
+Radarr:     http://<server-ip>:7878
+Sonarr:     http://<server-ip>:8989
+Prowlarr:   http://<server-ip>:9696
+Plex:       http://<server-ip>:32400
+Overseerr:  http://<server-ip>:5055
+Tdarr:      http://<server-ip>:8265
 ```
 
 ## Manual Actions
 ```bash
 # Run discovery with TMDB
-ssh server TMDB_KEY=5e00e3a8059e33e9f559bf884ed726ed python3 /mnt/20TB/homelab/media/Pipeline/discovery/engine.py daily
+ssh server TMDB_KEY=YOUR_TMDB_API_KEY python3 /mnt/20TB/homelab/media/Pipeline/discovery/engine.py daily
 
 # Force import scan
-ssh server curl -X POST 'http://localhost:7878/api/v3/command?apikey=e7746c269b2b43b2a2d102f6dea434e0' -H 'Content-Type:application/json' -d '{"name":"DownloadedMoviesScan","importMode":"move"}'
+ssh server curl -X POST 'http://localhost:7878/api/v3/command?apikey=YOUR_RADARR_API_KEY' -H 'Content-Type:application/json' -d '{"name":"DownloadedMoviesScan","importMode":"move"}'
 
 # Check Radarr queue
-ssh server curl -s 'http://localhost:7878/api/v3/queue?apikey=e7746c269b2b43b2a2d102f6dea434e0' | python3 -m json.tool
+ssh server curl -s 'http://localhost:7878/api/v3/queue?apikey=YOUR_RADARR_API_KEY' | python3 -m json.tool
 
 # Clear qBit completed torrents
 ssh laptop python3 /home/laptop/pipeline/cleanup-completed.sh

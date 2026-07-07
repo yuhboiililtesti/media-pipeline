@@ -2,20 +2,20 @@
 
 ## Topology
 ```
-Router: 10.0.0.1 (XFINITY)
+Router: <router-ip> (XFINITY)
 Subnet: 10.0.0.0/24
-Gateway: 10.0.0.1
+Gateway: <router-ip>
 DNS: 1.1.1.1, 8.8.8.8
 
 ┌──────────────────────────────────────────────┐
-│  ROUTER 10.0.0.1                             │
+│  ROUTER <router-ip>                             │
 │                                              │
 │  Port Forwards:                              │
-│    32400 TCP → 10.0.0.201 (Plex remote)      │
-│    8090  TCP → 10.0.0.201 (Dashboard)        │
+│    32400 TCP → <server-ip> (Plex remote)      │
+│    8090  TCP → <server-ip> (Dashboard)        │
 │                                              │
 │  ┌─────────────────────┐                     │
-│  │ SERVER 10.0.0.201   │                     │
+│  │ SERVER <server-ip>   │                     │
 │  │ enp6s0f0            │                     │
 │  │ UFW: deny in, allow │                     │
 │  │  out                │                     │
@@ -27,21 +27,21 @@ DNS: 1.1.1.1, 8.8.8.8
 │  └────────┬────────────┘                     │
 │           │ LAN                               │
 │  ┌────────┴────────────┐                     │
-│  │ LAPTOP 10.0.0.234   │                     │
+│  │ LAPTOP <laptop-ip>   │                     │
 │  │ enp8s0 ONLY (WiFi   │                     │
 │  │  DISABLED+MASKED)   │                     │
 │  │ qBit: 8080(WebUI)   │                     │
 │  │ gluetun: 51413(VPN) │                     │
 │  └─────────────────────┘                     │
 │                                              │
-│  DESKTOP 10.0.0.192 (DHCP)                  │
+│  DESKTOP <desktop-ip> (DHCP)                  │
 └──────────────────────────────────────────────┘
 
 VPN:
   Provider: AirVPN
   Protocol: WireGuard
-  Endpoint: 184.75.214.165:1637
-  Public IP: 184.75.208.10 (Toronto, Canada)
+  Endpoint: <vpn-public-ip>:1637
+  Public IP: <vpn-public-ip> (Toronto, Canada)
   VPN subnet: 10.153.205.171/32
   DNS: 10.128.0.1
   Killswitch: FIREWALL=on
@@ -51,13 +51,13 @@ VPN:
 ## SSH Configuration (~/.ssh/config)
 ```
 Host server
-  HostName 10.0.0.201
+  HostName <server-ip>
   Port 2223
   User topaz
   IdentityFile ~/.ssh/id_ed25519
 
 Host laptop
-  HostName 10.0.0.234
+  HostName <laptop-ip>
   Port 2225
   User laptop
   IdentityFile ~/.ssh/opencode_remote
@@ -65,9 +65,9 @@ Host laptop
 
 ## NFS
 ```
-Server export: /mnt/20TB/homelab/media/downloads → 10.0.0.234
+Server export: /mnt/20TB/homelab/media/downloads → <laptop-ip>
   Options: rw, sync, no_subtree_check, all_squash, anonuid=1000
 
-Laptop mount: 10.0.0.201:/mnt/20TB/homelab/media/downloads → /mnt/server/downloads
+Laptop mount: <server-ip>:/mnt/20TB/homelab/media/downloads → /mnt/server/downloads
   Options: nfs4, rw, vers=4.2, soft, timeo=10, retrans=2, async, noatime
 ```

@@ -2,7 +2,7 @@
 import subprocess, json, urllib.request, os, time
 
 OUTPUT = "/mnt/20TB/homelab/media/Pipeline/state/HEALTH_SCORE.json"
-QBIT = "http://10.0.0.234:8080"
+QBIT = "http://<laptop-ip>:8080"
 QBIT_USER = "topaz"
 QBIT_PASS = "YOUR_QBIT_PASSWORD"
 
@@ -36,7 +36,7 @@ for mp in ["/mnt/20TB", "/mnt/8TB"]:
 
 # Network
 network = 0
-if subprocess.run(["ping", "-c1", "-W2", "10.0.0.234"], capture_output=True).returncode == 0:
+if subprocess.run(["ping", "-c1", "-W2", "<laptop-ip>"], capture_output=True).returncode == 0:
     network = 75
 if subprocess.run(["ping", "-c1", "-W2", "1.1.1.1"], capture_output=True).returncode == 0:
     network = min(network + 25, 100)

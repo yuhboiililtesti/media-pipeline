@@ -174,49 +174,49 @@ curl -s "http://localhost:32400/accounts?X-Plex-Token=$TOKEN"
 curl -s "https://plex.tv/api/users?X-Plex-Token=$TOKEN"
 ```
 
-## qBittorrent API (http://10.0.0.234:8080/api/v2)
+## qBittorrent API (http://<laptop-ip>:8080/api/v2)
 
 ```bash
 USER=topaz; PASS=(see info file)
 
 # Login (needed for all other calls)
-curl -c /tmp/qb -L http://10.0.0.234:8080/api/v2/auth/login --data-urlencode "username=$USER" --data-urlencode "password=$PASS"
+curl -c /tmp/qb -L http://<laptop-ip>:8080/api/v2/auth/login --data-urlencode "username=$USER" --data-urlencode "password=$PASS"
 
 # Transfer info
-curl -b /tmp/qb http://10.0.0.234:8080/api/v2/transfer/info
+curl -b /tmp/qb http://<laptop-ip>:8080/api/v2/transfer/info
 
 # All torrents
-curl -b /tmp/qb http://10.0.0.234:8080/api/v2/torrents/info
+curl -b /tmp/qb http://<laptop-ip>:8080/api/v2/torrents/info
 
 # Filtered (completed, downloading, stalled, paused, errored)
-curl -b /tmp/qb "http://10.0.0.234:8080/api/v2/torrents/info?filter=completed"
+curl -b /tmp/qb "http://<laptop-ip>:8080/api/v2/torrents/info?filter=completed"
 
 # Preferences
-curl -b /tmp/qb http://10.0.0.234:8080/api/v2/app/preferences
+curl -b /tmp/qb http://<laptop-ip>:8080/api/v2/app/preferences
 
 # Set preferences
-curl -b /tmp/qb http://10.0.0.234:8080/api/v2/app/setPreferences -d 'json={"max_active_downloads":15}'
+curl -b /tmp/qb http://<laptop-ip>:8080/api/v2/app/setPreferences -d 'json={"max_active_downloads":15}'
 
 # Add trackers
-curl -b /tmp/qb -X POST http://10.0.0.234:8080/api/v2/torrents/addTrackers --data-urlencode "hash=ABC" --data-urlencode "urls=udp://tracker..."
+curl -b /tmp/qb -X POST http://<laptop-ip>:8080/api/v2/torrents/addTrackers --data-urlencode "hash=ABC" --data-urlencode "urls=udp://tracker..."
 
 # Re-announce
-curl -b /tmp/qb -X POST http://10.0.0.234:8080/api/v2/torrents/reannounce --data-urlencode "hashes=ABC|DEF"
+curl -b /tmp/qb -X POST http://<laptop-ip>:8080/api/v2/torrents/reannounce --data-urlencode "hashes=ABC|DEF"
 
 # Force recheck
-curl -b /tmp/qb -X POST http://10.0.0.234:8080/api/v2/torrents/recheck --data-urlencode "hashes=ABC"
+curl -b /tmp/qb -X POST http://<laptop-ip>:8080/api/v2/torrents/recheck --data-urlencode "hashes=ABC"
 
 # Resume
-curl -b /tmp/qb -X POST http://10.0.0.234:8080/api/v2/torrents/resume --data-urlencode "hashes=ABC"
+curl -b /tmp/qb -X POST http://<laptop-ip>:8080/api/v2/torrents/resume --data-urlencode "hashes=ABC"
 
 # Delete (keep files)
-curl -b /tmp/qb -X POST http://10.0.0.234:8080/api/v2/torrents/delete --data-urlencode "hashes=ABC" --data-urlencode "deleteFiles=false"
+curl -b /tmp/qb -X POST http://<laptop-ip>:8080/api/v2/torrents/delete --data-urlencode "hashes=ABC" --data-urlencode "deleteFiles=false"
 
 # Torrent trackers
-curl -b /tmp/qb "http://10.0.0.234:8080/api/v2/torrents/trackers?hash=ABC"
+curl -b /tmp/qb "http://<laptop-ip>:8080/api/v2/torrents/trackers?hash=ABC"
 
 # Change password
-curl -b /tmp/qb http://10.0.0.234:8080/api/v2/app/setPreferences -d 'json={"web_ui_password":"newpass"}'
+curl -b /tmp/qb http://<laptop-ip>:8080/api/v2/app/setPreferences -d 'json={"web_ui_password":"newpass"}'
 ```
 
 ## TMDB API (https://api.themoviedb.org/3)

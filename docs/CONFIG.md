@@ -54,13 +54,13 @@ UUID=A658C85958C829BF  /mnt/8TB   ntfs-3g  uid=1000,gid=1000,dmask=000,fmask=000
 ### Exports
 ```
 /etc/exports:
-  /mnt/20TB/homelab/media/downloads 10.0.0.234(rw,sync,no_subtree_check,all_squash,anonuid=1000,anongid=1000)
+  /mnt/20TB/homelab/media/downloads <laptop-ip>(rw,sync,no_subtree_check,all_squash,anonuid=1000,anongid=1000)
 ```
 
 ### UFW
 ```
 Default: deny incoming, allow outgoing
-Open: 2223(SSH), 32400(Plex), 111+2049(NFS→10.0.0.234 only), 8090(Dashboard), 137-139+445(SMB)
+Open: 2223(SSH), 32400(Plex), 111+2049(NFS→<laptop-ip> only), 8090(Dashboard), 137-139+445(SMB)
 ```
 
 ### Plex
@@ -113,13 +113,13 @@ Open: 2223(SSH), 32400(Plex), 111+2049(NFS→10.0.0.234 only), 8090(Dashboard), 
 
 ### Fstab
 ```
-10.0.0.201:/mnt/20TB/homelab/media/downloads /mnt/server/downloads nfs4 rw,vers=4.2,soft,timeo=10,retrans=2,async,noatime 0 0
+<server-ip>:/mnt/20TB/homelab/media/downloads /mnt/server/downloads nfs4 rw,vers=4.2,soft,timeo=10,retrans=2,async,noatime 0 0
 ```
 
 ### Network
 ```
 /etc/systemd/network/10-ethernet.network
-  enp8s0: 10.0.0.234/24 static, gateway 10.0.0.1, DNS 1.1.1.1+8.8.8.8
+  enp8s0: <laptop-ip>/24 static, gateway <router-ip>, DNS 1.1.1.1+8.8.8.8
 
 /etc/systemd/network/99-disable-wifi.network
   wlp5s0: Unmanaged=yes  (WiFi DISABLED+MASKED)
@@ -152,12 +152,12 @@ Open: 2223(SSH), 32400(Plex), 111+2049(NFS→10.0.0.234 only), 8090(Dashboard), 
 ### SSH Config (~/.ssh/config)
 ```
 Host server
-  HostName 10.0.0.201
+  HostName <server-ip>
   Port 2223
   User topaz
 
 Host laptop
-  HostName 10.0.0.234
+  HostName <laptop-ip>
   Port 2225
   User laptop
 ```

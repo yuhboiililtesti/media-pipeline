@@ -5,7 +5,7 @@
 import json, os, subprocess, urllib.request
 
 RULES_FILE = '/mnt/20TB/homelab/media/Pipeline/safeguards/rules.json'
-QBIT_HOST = '10.0.0.234:8080'
+QBIT_HOST = '<laptop-ip>:8080'
 QBIT_USER = 'topaz'
 QBIT_PASS = 'YOUR_QBIT_PASSWORD'
 
@@ -113,7 +113,7 @@ def check_health(rules):
     if not rules.get('health', {}).get('vpn_required', False):
         return True, 'VPN check disabled'
     try:
-        vpn = subprocess.run(['ssh', '-p', '2225', '-o', 'ConnectTimeout=5', 'laptop@10.0.0.234',
+        vpn = subprocess.run(['ssh', '-p', '2225', '-o', 'ConnectTimeout=5', 'laptop@<laptop-ip>',
             'sudo docker inspect gluetun --format {{.State.Health.Status}}'],
             capture_output=True, text=True, timeout=10)
         if 'healthy' not in vpn.stdout:

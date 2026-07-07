@@ -2,7 +2,7 @@
 
 ## Connection
 ```
-URL:      http://10.0.0.234:8080
+URL:      http://<laptop-ip>:8080
 Username: topaz
 Password: (see /home/topaz/home/info)
 ```
@@ -34,8 +34,8 @@ Network: gluetun (VPN killswitch)
 ## VPN
 ```
 Provider:    AirVPN (WireGuard)
-Endpoint:    184.75.214.165:1637
-Public IP:   184.75.208.10 (Toronto)
+Endpoint:    <vpn-public-ip>:1637
+Public IP:   <vpn-public-ip> (Toronto)
 Killswitch:  FIREWALL=on
 Port:        51413 (torrent), 8080 (WebUI)
 Local:       FIREWALL_INPUT_PORTS=8080

@@ -34,14 +34,14 @@ qbittorrent   lscr.io/linuxserver/qbittorrent:4.6.3    —         Up
 - Allowed: HDTV-720p, WEB-720p, Bluray-720p
 
 ## Download Client (Radarr + Sonarr)
-- Type: qBittorrent, Host: 10.0.0.234:8080
+- Type: qBittorrent, Host: <laptop-ip>:8080
 - removeCompleted: TRUE, removeFailed: TRUE
 - Category: radar / sonarr
 - Language: English default
 
 ## Remote Path Mapping
 ```
-10.0.0.234: /downloads/ → /mnt/20TB/homelab/media/downloads/
+<laptop-ip>: /downloads/ → /mnt/20TB/homelab/media/downloads/
 ```
 
 ## Root Folders

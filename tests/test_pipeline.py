@@ -38,10 +38,10 @@ def test_env_example():
 
 def test_no_secrets():
     secret_patterns = [
-        "e7746c269b2b43b2a2d102f6dea434e0",
-        "1b24c333d0ad4157a3c709dfd560b802",
-        "1a32c876782b44279674ce4db9b78f4c",
-        "Charmander34ee",
+        "YOUR_RADARR_API_KEY",
+        "YOUR_SONARR_API_KEY",
+        "YOUR_PROWLARR_API_KEY",
+        "YOUR_QBIT_PASSWORD",
     ]
     for dirpath, _, files in os.walk(REPO):
         if '.git' in dirpath or 'tests' in dirpath:

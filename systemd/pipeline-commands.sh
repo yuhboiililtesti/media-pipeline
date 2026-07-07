@@ -20,7 +20,7 @@ DL = $DL; UL = $UL; TOR = $TOR; CONN = $CONN
 if MODE != "status":
     print(f"Pipeline: {MODE.upper()} — applying...")
     
-    for label, url in [("OVERFLOW", "http://127.0.0.1:8083"), ("LAPTOP", "http://10.0.0.234:8080")]:
+    for label, url in [("OVERFLOW", "http://127.0.0.1:8083"), ("LAPTOP", "http://<laptop-ip>:8080")]:
         try:
             c = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(c)
             o.open(urllib.request.Request(f'{url}/api/v2/auth/login',
@@ -59,7 +59,7 @@ print(f"{'='*55}")
 
 total_dl = 0; total_tor = 0; total_speed = 0
 
-for label, url in [("OVERFLOW", "http://127.0.0.1:8083"), ("LAPTOP", "http://10.0.0.234:8080")]:
+for label, url in [("OVERFLOW", "http://127.0.0.1:8083"), ("LAPTOP", "http://<laptop-ip>:8080")]:
     try:
         c = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(c)
         o.open(urllib.request.Request(f'{url}/api/v2/auth/login',
@@ -138,7 +138,7 @@ echo 'Backlog gaps queued.'
 import subprocess, urllib.request, json, os, sys, time, re
 from datetime import datetime
 
-QBIT = 'http://10.0.0.234:8080'
+QBIT = 'http://<laptop-ip>:8080'
 QBIT_U = 'topaz'
 QBIT_P = 'YOUR_QBIT_PASSWORD'
 RADARR_KEY = 'YOUR_RADARR_API_KEY'
@@ -324,7 +324,7 @@ if os.path.exists(hp):
 print(f"\n{b('🔒 VPN')}")
 try:
     result = subprocess.run(['ssh', '-p', '2225', '-o', 'ConnectTimeout=5', '-o', 'StrictHostKeyChecking=no',
-        'laptop@10.0.0.234', 'sudo docker logs gluetun 2>&1 | grep "Public IP" | tail -1'],
+        'laptop@<laptop-ip>', 'sudo docker logs gluetun 2>&1 | grep "Public IP" | tail -1'],
         capture_output=True, text=True, timeout=8)
     if 'Public IP' in result.stdout:
         ip = result.stdout.strip().split()[-1]
@@ -344,7 +344,7 @@ echo '=== PIPELINE CLEAN ==='
 echo 'Cleaning dead torrents...'
 python3 -c "
 import urllib.request, urllib.parse, json
-for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://10.0.0.234:8080')]:
+for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<laptop-ip>:8080')]:
     try:
         cj = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(cj)
         o.open(urllib.request.Request(f'{url}/api/v2/auth/login', data=urllib.parse.urlencode({'username':'topaz','password':'YOUR_QBIT_PASSWORD'}).encode()), timeout=8)
@@ -547,7 +547,7 @@ echo 'Dedup complete.'
 echo '=== PIPELINE ENCODE — Tdarr Status ==='
 docker ps --format '{{.Names}} {{.Status}}' | grep tdarr
 echo ''
-echo 'Tdarr WebUI: http://10.0.0.201:8265'
+echo 'Tdarr WebUI: http://<server-ip>:8265'
 echo 'Cache: /mnt/20TB/Encode-Tmp'
 echo 'Post-encode timer: every 5min'
 python3 /mnt/20TB/homelab/media/Pipeline/scripts/tdarr-post-encode.sh 2>&1 | tail -3
@@ -687,7 +687,7 @@ cat << 'HELP'
   │ pipeline-encode     Tdarr encoding status        │
   │   → Shows Tdarr container status                 │
   │   → Runs post-encode scan of Encode-Tmp          │
-  │   → WebUI: http://10.0.0.201:8265                │
+  │   → WebUI: http://<server-ip>:8265                │
   │   → Example: pipeline-encode                     │
   │                                                   │
   │ pipeline-taste      Refresh taste profiles       │
@@ -773,19 +773,19 @@ cat << 'HELP'
   │   Sun 3am auto-dedup      (weekly dedup)         │
   │                                                   │
   │ WEB UIs:                                          │
-  │   Dashboard: http://10.0.0.201:8090               │
-  │   qBit Laptop: http://10.0.0.234:8080             │
-  │   qBit Overflow: http://10.0.0.201:8083           │
-  │   Radarr: http://10.0.0.201:7878                  │
-  │   Sonarr: http://10.0.0.201:8989                  │
-  │   Prowlarr: http://10.0.0.201:9696                │
-  │   Plex: http://10.0.0.201:32400                   │
-  │   Tdarr: http://10.0.0.201:8265                   │
+  │   Dashboard: http://<server-ip>:8090               │
+  │   qBit Laptop: http://<laptop-ip>:8080             │
+  │   qBit Overflow: http://<server-ip>:8083           │
+  │   Radarr: http://<server-ip>:7878                  │
+  │   Sonarr: http://<server-ip>:8989                  │
+  │   Prowlarr: http://<server-ip>:9696                │
+  │   Plex: http://<server-ip>:32400                   │
+  │   Tdarr: http://<server-ip>:8265                   │
   │                                                   │
   │ SSH:                                              │
-  │   ssh server     (topaz@10.0.0.201 -p 2223)       │
-  │   ssh laptop     (laptop@10.0.0.234 -p 2225)      │
-  │   ssh desktop    (topaz@10.0.0.192 -p 2224)       │
+  │   ssh server     (<user>@<server-ip> -p 2223)       │
+  │   ssh laptop     (laptop@<laptop-ip> -p 2225)      │
+  │   ssh desktop    (<user>@<desktop-ip> -p 2224)       │
   └───────────────────────────────────────────────────┘
 
 HELP
@@ -815,7 +815,7 @@ echo 'Full logs: /mnt/20TB/homelab/media/Pipeline/logs/'
 echo '=== PIPELINE PEERS ==='
 python3 -c "
 import urllib.request, urllib.parse, json
-for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://10.0.0.234:8080')]:
+for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<laptop-ip>:8080')]:
     try:
         cj = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(cj)
         o.open(urllib.request.Request(f'{url}/api/v2/auth/login', data=urllib.parse.urlencode({'username':'topaz','password':'YOUR_QBIT_PASSWORD'}).encode()), timeout=8)
@@ -915,7 +915,7 @@ echo '=== PIPELINE SEED — Max Peer Discovery ==='
 python3 -c "
 import urllib.request, urllib.parse, json
 TRACKERS = ['udp://tracker.opentrackr.org:1337/announce','udp://open.demonii.com:1337/announce','udp://tracker.openbittorrent.com:6969/announce','udp://open.stealth.si:80/announce','udp://tracker.torrent.eu.org:451/announce','udp://explodie.org:6969/announce','udp://tracker.moeking.me:6969/announce','udp://tracker.bitsearch.to:1337/announce','udp://p4p.arenabg.com:1337/announce','udp://movies.zsw.ca:6969/announce','udp://retracker.lanta-net.ru:2710/announce','http://tracker.openbittorrent.com:80/announce','udp://tracker.dler.org:6969/announce','udp://odd-hd.fr:6969/announce','udp://tracker.leech.ie:1337/announce']
-for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://10.0.0.234:8080')]:
+for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<laptop-ip>:8080')]:
     try:
         cj = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(cj)
         o.open(urllib.request.Request(f'{url}/api/v2/auth/login', data=urllib.parse.urlencode({'username':'topaz','password':'YOUR_QBIT_PASSWORD'}).encode()), timeout=8)
@@ -971,7 +971,7 @@ echo ''
 echo 'Stalled torrents:'
 python3 -c "
 import urllib.request, urllib.parse, json
-for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://10.0.0.234:8080')]:
+for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<laptop-ip>:8080')]:
     try:
         cj = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(cj)
         o.open(urllib.request.Request(f'{url}/api/v2/auth/login', data=urllib.parse.urlencode({'username':'topaz','password':'YOUR_QBIT_PASSWORD'}).encode()), timeout=5)
@@ -988,7 +988,7 @@ echo 'VERDICT:'
 python3 -c "
 import urllib.request, urllib.parse, json
 issues = []
-for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://10.0.0.234:8080')]:
+for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<laptop-ip>:8080')]:
     try:
         cj = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(cj)
         o.open(urllib.request.Request(f'{url}/api/v2/auth/login', data=urllib.parse.urlencode({'username':'topaz','password':'YOUR_QBIT_PASSWORD'}).encode()), timeout=5)

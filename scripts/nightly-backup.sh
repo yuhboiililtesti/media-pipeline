@@ -6,7 +6,7 @@ set -euo pipefail
 LOG="/mnt/20TB/homelab/media/Pipeline/logs/nightly-backup.log"
 DATE=$(date +%Y-%m-%d)
 BACKUP_DIR="/tmp/homelab-backup-$DATE"
-DESKTOP="topaz@<desktop-ip>"
+DESKTOP="<user>@<desktop-ip>"
 DESKTOP_PATH="/mnt/500gb-1/homelab-backup"
 KEEP_DAYS=7
 
@@ -111,7 +111,7 @@ tar czf "/tmp/$ARCHIVE_NAME" -C /tmp "homelab-backup-$DATE" 2>/dev/null
 
 # --- 8. COPY TO DESKTOP ---
 log "Copying to desktop /mnt/500gb-1/homelab-backup/..."
-ssh -p 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 topaz@<desktop-ip> \
+ssh -p 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 <user>@<desktop-ip> \
     "mkdir -p $DESKTOP_PATH/archives" 2>/dev/null
 
 scp -P 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
@@ -138,7 +138,7 @@ find /tmp -name "homelab-backup-*.tar.gz" -mtime +$KEEP_DAYS -delete 2>/dev/null
 find "$BACKUP_DIR" -delete 2>/dev/null || rm -rf "$BACKUP_DIR" 2>/dev/null
 
 # Clean old on desktop too
-ssh -p 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 topaz@<desktop-ip> \
+ssh -p 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 <user>@<desktop-ip> \
     "find $DESKTOP_PATH/archives -name 'homelab-backup-*.tar.gz' -mtime +$KEEP_DAYS -delete" 2>/dev/null
 
 log "Nightly backup complete — archive: $ARCHIVE_NAME"

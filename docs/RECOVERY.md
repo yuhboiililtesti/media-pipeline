@@ -42,9 +42,9 @@ Total loss              NEVER     10%        —
 ### Laptop Dies
 ```bash
 # 1. Any Linux machine with Docker
-# 2. Set static IP 10.0.0.234/24
+# 2. Set static IP <laptop-ip>/24
 # 3. Restore /home/laptop/pipeline/ from backup
-# 4. Mount NFS: 10.0.0.201:/mnt/20TB/homelab/media/downloads
+# 4. Mount NFS: <server-ip>:/mnt/20TB/homelab/media/downloads
 docker compose up -d
 systemctl enable vpn-watchdog cleanup-completed seed-finder healer-check
 ```
@@ -86,9 +86,9 @@ curl -X POST 'http://localhost:32400/library/sections?name=Movies&type=movie&age
 ### Router Reset
 ```bash
 # 1. Subnet: 10.0.0.0/24
-# 2. Reserve: 10.0.0.201 (server), 10.0.0.234 (laptop)
-# 3. Forward: 32400 TCP → 10.0.0.201
-# 4. Optional: 8090 TCP → 10.0.0.201 (Dashboard)
+# 2. Reserve: <server-ip> (server), <laptop-ip> (laptop)
+# 3. Forward: 32400 TCP → <server-ip>
+# 4. Optional: 8090 TCP → <server-ip> (Dashboard)
 ```
 
 ## Nightly Backup — What Gets Saved

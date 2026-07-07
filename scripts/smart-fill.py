@@ -2,7 +2,7 @@
 """Smart-fill: Auto-queue missing episodes when qBit has room."""
 import urllib.request, urllib.parse, json, time, os
 
-QBIT_HOST = '10.0.0.234:8080'; QBIT_USER = 'topaz'; QBIT_PASS = 'YOUR_QBIT_PASSWORD'
+QBIT_HOST = '<laptop-ip>:8080'; QBIT_USER = 'topaz'; QBIT_PASS = 'YOUR_QBIT_PASSWORD'
 SONARR_KEY = 'YOUR_SONARR_API_KEY'; SONARR_URL = 'http://localhost:8989/api/v3'
 LOG = '/mnt/20TB/homelab/media/Pipeline/logs/smart-fill.log'
 MAX_QUEUED = 150; MAX_PER_RUN = 3
