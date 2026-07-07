@@ -5,7 +5,7 @@ import urllib.request, urllib.parse, json, time, os, subprocess
 
 QBITS = [
     ('overflow', 'http://localhost:8083'),
-    ('laptop', 'http://10.0.0.234:8080'),
+    ('laptop', 'http://<laptop-ip>:8080'),
 ]
 USER = 'topaz'
 PASS = 'YOUR_QBIT_PASSWORD'

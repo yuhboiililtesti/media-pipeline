@@ -6,7 +6,7 @@ set -euo pipefail
 LOG="/mnt/20TB/homelab/media/Pipeline/logs/nightly-backup.log"
 DATE=$(date +%Y-%m-%d)
 BACKUP_DIR="/tmp/homelab-backup-$DATE"
-DESKTOP="topaz@10.0.0.192"
+DESKTOP="topaz@<desktop-ip>"
 DESKTOP_PATH="/mnt/500gb-1/homelab-backup"
 KEEP_DAYS=7
 
@@ -82,7 +82,7 @@ cp /usr/local/bin/*.py "$BACKUP_DIR/scripts-server/" 2>/dev/null || true
 # --- 5. PULL FROM LAPTOP ---
 log "Pulling laptop configs..."
 ssh -p 2225 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
-    laptop@10.0.0.234 "tar czf /tmp/laptop-backup.tar.gz \
+    laptop@<laptop-ip> "tar czf /tmp/laptop-backup.tar.gz \
     /home/laptop/pipeline/docker-compose.yml \
     /home/laptop/pipeline/*.sh \
     /home/laptop/pipeline/config/ \
@@ -94,11 +94,11 @@ ssh -p 2225 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o ConnectTimeout=1
     2>/dev/null" 2>/dev/null
 
 scp -P 2225 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
-    laptop@10.0.0.234:/tmp/laptop-backup.tar.gz "$BACKUP_DIR/laptop-backup.tar.gz" 2>/dev/null && \
+    laptop@<laptop-ip>:/tmp/laptop-backup.tar.gz "$BACKUP_DIR/laptop-backup.tar.gz" 2>/dev/null && \
     log "  Laptop backup pulled" || log "  Laptop unreachable — skipping"
 
 lsblk_output=$(ssh -p 2225 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
-    laptop@10.0.0.234 "lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,FSTYPE 2>/dev/null" 2>/dev/null)
+    laptop@<laptop-ip> "lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,FSTYPE 2>/dev/null" 2>/dev/null)
 [ -n "$lsblk_output" ] && echo "$lsblk_output" > "$BACKUP_DIR/inventory/lsblk-laptop.txt"
 
 # --- 6. COPY SSH CONFIG ---
@@ -111,7 +111,7 @@ tar czf "/tmp/$ARCHIVE_NAME" -C /tmp "homelab-backup-$DATE" 2>/dev/null
 
 # --- 8. COPY TO DESKTOP ---
 log "Copying to desktop /mnt/500gb-1/homelab-backup/..."
-ssh -p 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 topaz@10.0.0.192 \
+ssh -p 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 topaz@<desktop-ip> \
     "mkdir -p $DESKTOP_PATH/archives" 2>/dev/null
 
 scp -P 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
@@ -138,7 +138,7 @@ find /tmp -name "homelab-backup-*.tar.gz" -mtime +$KEEP_DAYS -delete 2>/dev/null
 find "$BACKUP_DIR" -delete 2>/dev/null || rm -rf "$BACKUP_DIR" 2>/dev/null
 
 # Clean old on desktop too
-ssh -p 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 topaz@10.0.0.192 \
+ssh -p 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 topaz@<desktop-ip> \
     "find $DESKTOP_PATH/archives -name 'homelab-backup-*.tar.gz' -mtime +$KEEP_DAYS -delete" 2>/dev/null
 
 log "Nightly backup complete — archive: $ARCHIVE_NAME"
