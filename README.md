@@ -1,100 +1,169 @@
 # media-pipeline
 
-my homelab media pipeline that runs itself. built it because i got tired of manually finding movies, waiting for downloads, importing to plex, cleaning up duplicates, fixing stalled torrents, and all the other crap that comes with running a media server.
+A self-driving media pipeline for Plex. Finds content you'll actually like, downloads it, imports it, encodes it, and keeps itself running. Built for my homelab, shared in case it helps yours.
 
-this thing handles everything. discovers new content based on what i actually like, downloads it through a vpn, imports it to plex, encodes it to save space, and keeps itself alive with a bunch of watchdog timers. i haven't touched it manually in weeks.
+## Features
 
-## what it actually does
+- **Content discovery** — scans TMDB using your taste profile (actors, directors, genres, franchises you like)
+- **Gap filling** — finds missing episodes, seasons, sequels, and franchise holes
+- **Dual VPN download** — two qBittorrent instances behind WireGuard with automatic failover
+- **Auto-import** — completed downloads hit Plex within a minute
+- **Space-saving encode** — Tdarr re-encodes to HEVC via NVENC or CPU (~40% smaller)
+- **Self-healing** — 9 watchdog timers handle crashes, stalls, duplicates, corrupted files, and disk pressure
+- **Scheduled modes** — goes full speed while you sleep, chills during the day
 
-- watches plex and goes "oh you have a lot of sci-fi and horror? here's more"
-- scans tmdb using actors/directors/genres you tell it about
-- fills in missing episodes of shows you're watching (complete seasons, not random eps)
-- finds sequels/prequels to movies you own
-- downloads through two qbittorrent instances (both behind vpns)
-- imports completed downloads to plex within a minute
-- runs tdarr to encode everything to hevc (saves like 40% space)
-- cleans up dead torrents, duplicates, fake files automatically
-- protects your drives from filling up (slows down, then stops if needed)
-- backs everything up nightly
-
-## setup
-
-you need a linux server with docker, python 3, systemd, and some media drives.
+## Quick Start
 
 ```bash
 git clone https://github.com/yuhboiililtesti/media-pipeline
 cd media-pipeline
 ```
 
-drop your api keys into the scripts (there's placeholders for everything). point the paths at your drives. install the systemd timers. that's basically it.
+1. Set your API keys in the scripts (search for `YOUR_` placeholders)
+2. Point paths to your media drives
+3. Get a free TMDB API key from themoviedb.org
+4. Install the systemd units:
 
-## the commands
-
-```
-pipeline max           send it (50 simultaneous downloads)
-pipeline med           chill mode for when people are home
-pipeline soft          pause everything (gaming, etc)
-
-pipeline-grow          find new stuff based on your taste
-pipeline-backlog       fill in missing episodes and sequels
-pipeline-flow          do all of it at once
-
-pipeline-clean         nuke dead torrents and free up space
-pipeline-seed          inject trackers into everything, find more peers
-pipeline-stall         figure out why the hell nothing is downloading
-pipeline-unstall       emergency restart everything button
-
-pipeline-health        quick check that everything's alive
-pipeline-audit         deep dive into every component
-pipeline-help          all 25 commands with examples
+```bash
+sudo cp systemd/*.service systemd/*.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable pipeline-max.timer pipeline-day.timer
 ```
 
-## stuff it protects against
+5. Seed your taste profile in `plexlist.txt`:
 
-| problem | how it fixes itself |
+```
+[ACTORS]
+@Tom Hanks
+@Cate Blanchett
+
+[DIRECTORS]
+@Denis Villeneuve
+@Hayao Miyazaki
+
+[FRANCHISES]
++10    # Star Wars
++13151 # Marvel
+
+[GENRES]
+%Science Fiction
+%Horror
+
+[SIMILAR]
+~Inception
+~Arrival
+```
+
+## Commands
+
+**Modes**
+```bash
+pipeline max        # 50 concurrent downloads
+pipeline hard       # 20 concurrent
+pipeline med        # 3 concurrent (home hours)
+pipeline soft       # pause everything
+pipeline status     # current stats
+```
+
+**Content**
+```bash
+pipeline-grow       # discover new content (TMDB + taste)
+pipeline-backlog    # fill missing episodes and sequels
+pipeline-flow       # max mode + backlog + grow
+pipeline-scan       # force Plex library refresh
+pipeline-import     # force import completed downloads
+pipeline-queue      # show what's in the download queue
+```
+
+**Maintenance**
+```bash
+pipeline-clean      # remove dead torrents + free system space
+pipeline-seed       # inject trackers + re-announce everything
+pipeline-dedup      # scan for duplicate media files
+pipeline-taste      # refresh taste profiles from Plex library
+pipeline-daily      # run all daily maintenance tasks
+pipeline-log        # quick peek at all logs
+```
+
+**Diagnostics**
+```bash
+pipeline-health     # quick health overview
+pipeline-audit      # full system audit
+pipeline-stall      # figure out why downloads stopped
+pipeline-peers      # seed/peer stats per qBit instance
+pipeline-vpn        # check both VPN connections
+pipeline-space      # disk usage breakdown
+```
+
+**Emergency**
+```bash
+pipeline-unstall    # restart everything + recover + reseed
+pipeline-recover    # NFS remount, compose validate, restart containers
+pipeline-config     # change settings on the fly
+pipeline-help       # full reference with examples
+```
+
+## Self-Healing
+
+| Problem | Guard | Runs |
+|---|---|---|
+| Dead Docker container | `container-watchdog` | every 5min |
+| System crash | `crash-watchdog` | every 5min |
+| Torrent stuck at 99% | `stalled-rescue` | every 15min |
+| Same episode downloaded twice | `anti-dupe` | every 30min |
+| Disk filling up (20TB) | `protect-20tb` | every 30min |
+| Disk filling up (8TB) | `protect-8tb` | hourly |
+| Fake/corrupt media files | `integrity-check` | daily 3:30am |
+| VPN dropped | `vpn-watchdog` (laptop) | every 60s |
+| Low disk space | `disk-space-guard` | every 15min |
+
+## Auto Schedule
+
+```
+04:00   pipeline max     full speed while everyone sleeps
+12:00   pipeline med     chill mode for home hours
+02:00   discovery        TMDB scan for new content
+03:00   nightly backup   config export to secondary machine
+03:30   integrity check  scan for bad files
+Sun 03  auto-dedup       weekly duplicate cleanup
+```
+
+## Architecture
+
+```
+                   ┌─ Prowlarr (8 indexers)
+                   │
+Request ──→ Radarr/Sonarr ──→ qBit (VPN) ──→ Download complete
+                   │                              │
+                   │                         Auto-import (1min)
+                   │                              │
+                   │                           Plex ──→ Tdarr (HEVC encode)
+                   │                              │
+                   └── Discovery Engine ◄── Taste Profile
+                        (TMDB scan)           (plexlist.txt)
+```
+
+## Dependencies
+
+- Linux with systemd and Docker
+- Radarr, Sonarr, Prowlarr (Docker containers on a shared network)
+- Plex Media Server
+- qBittorrent (ideally two instances behind VPNs)
+- Python 3 (for scripts)
+- TMDB API key (free)
+- NVIDIA GPU optional (for hardware-accelerated Tdarr encoding)
+
+## Config Files
+
+| File | Purpose |
 |---|---|
-| vpn drops | restarts gluetun every 60 seconds if it's down |
-| container dies | checks every 5min, restarts anything dead |
-| torrent stuck at 99% | force rechecks near-complete stalled torrents |
-| disk getting full | warns at 90%, slows downloads at 95%, stops at 98% |
-| duplicate downloads | removes same-episode dupes every 30min (keeps the x265 one) |
-| fake/corrupt files | scans daily for 0-byte or archive-disguised-as-media files |
-| qbit loses config | nightly backup saves everything |
-| radarr/sonarr miss an import | backup import watchdog catches it |
+| `safeguards/rules.json` | Thresholds, limits, content filters |
+| `plexlist.txt` | Your content + taste seeds |
+| `taste/*.json` | Per-user genre/actor/director scores |
+| `systemd/` | All timer and service unit files |
+| `scripts/` | Automation scripts (drop-in, edit paths) |
+| `discovery/` | TMDB discovery engine with scoring |
 
-## the schedule (runs itself)
+## License
 
-```
-4am     pipeline max       nobody's awake, full send
-12pm    pipeline med       people are home, chill
-2am     discovery engine   scan tmdb, find new stuff
-3am     nightly backup     save everything
-3:30am  integrity check    scan for fake files
-sun 3am dedup              weekly cleanup of duplicate media
-```
-
-## files you'll want to edit
-
-- `safeguards/rules.json` — thresholds, limits, what to never download
-- `plexlist.txt` — your taste seeds (actors you like, directors, genres, franchises)
-- `taste/` — per-user taste profiles with genre/actor/director scores
-
-## why i built this
-
-i have a server with a 3090 ti and a bunch of storage. i wanted my plex library to grow on its own based on what i actually watch and like. not just random trending garbage. this pipeline watches what's in my library, cross-references it with tmdb, and goes "hey you have every christopher nolan movie except tenet — want me to grab it?"
-
-also i was tired of waking up to find my drives full with no warning, or 500 stalled torrents clogging the queue, or the same episode downloaded 3 times from different indexers. this fixes all of that.
-
-## requirements
-
-- any linux server with docker
-- radarr + sonarr + prowlarr (docker containers)
-- plex media server
-- qbittorrent (i run two — one on the server, one on a separate laptop both behind vpns)
-- a tmdb api key (free, takes 2 minutes to get)
-- some nvidia gpu helps for tdarr encoding but not required
-- systemd (for all the timers)
-
-## license
-
-mit. do whatever you want with it. if it breaks something that's on you.
+MIT
