@@ -1,0 +1,20 @@
+name: Test Pipeline
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install deps
+        run: pip install pytest pyyaml ruff mypy
+      - name: Lint (ruff)
+        run: ruff check discovery/ scripts/ tests/
+      - name: Type check (mypy)
+        run: mypy discovery/ --ignore-missing-imports || true
+      - name: Tests
+        run: python3 -m pytest tests/ -v
