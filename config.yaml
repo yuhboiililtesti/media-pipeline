@@ -54,7 +54,7 @@ pipeline:
     bazarr:   { host: localhost, port: 6767 }
     flaresolverr: { host: localhost, port: 8191 }
     qbit_overflow: { host: 127.0.0.1, port: 8083 }    # server-side VPN qBit
-    qbit_laptop:   { host: 10.0.0.234, port: 8080 }   # laptop VPN qBit
+    qbit_laptop:   { host: <laptop-ip>, port: 8080 }   # laptop VPN qBit
 
   timers:
     torrent_doctor: 5       # inject trackers, resume stalled
