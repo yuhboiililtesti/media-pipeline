@@ -563,6 +563,15 @@ echo ''
 echo ''
 echo 'Pipeline FLOW activated.'
 
+# pipeline-flow-cycle
+#!/bin/bash
+# Auto-flow cycle — runs every 30 min
+/usr/local/bin/pipeline-seed 2>&1 | head -1
+python3 /mnt/20TB/homelab/media/Pipeline/scripts/complete-media.py 2>&1 | tail -3
+TMDB_KEY=YOUR_TMDB_API_KEY python3 /mnt/20TB/homelab/media/Pipeline/discovery/engine.py daily 2>&1 | tail -5
+/usr/local/bin/pipeline-import 2>&1 | head -2
+/usr/local/bin/pipeline-scan 2>&1 | head -2
+
 # pipeline-grow
 #!/bin/bash
 echo '=== PIPELINE GROW — New Content Discovery ==='
