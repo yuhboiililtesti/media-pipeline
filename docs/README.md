@@ -2,37 +2,37 @@
 
 ## Quick Reference
 ```
-Dashboard:  http://<server-ip>:8090
-qBit:       http://<laptop-ip>:8080 (topaz / see info file)
-Radarr:     http://<server-ip>:7878
-Sonarr:     http://<server-ip>:8989
-Prowlarr:   http://<server-ip>:9696
-Plex:       http://<server-ip>:32400
-Overseerr:  http://<server-ip>:5055
-Tdarr:      http://<server-ip>:8265
+Dashboard:  http://10.0.0.201:8090
+qBit:       http://10.0.0.234:8080 (topaz / see info file)
+Radarr:     http://10.0.0.201:7878
+Sonarr:     http://10.0.0.201:8989
+Prowlarr:   http://10.0.0.201:9696
+Plex:       http://10.0.0.201:32400
+Overseerr:  http://10.0.0.201:5055
+Tdarr:      http://10.0.0.201:8265
 
-Server SSH: topaz@<server-ip> -p <ssh-port>
-Laptop SSH: laptop@<laptop-ip> -p <ssh-port>
+Server SSH: topaz@10.0.0.201 -p 2223
+Laptop SSH: laptop@10.0.0.234 -p 2225
 ```
 
 ## Machines
 
-### Server (<server-ip>) — Arch Linux
+### Server (10.0.0.201) — Arch Linux
 - GPU: RTX 3090 Ti (NVENC)
 - Root: 86.8G ext4 LVM (69%)
 - Drives: 20TB (60%, 7.5TB free NTFS), 8TB (91%, 744GB free NTFS), NVMe (RETIRED)
 - Docker: 10 containers on media-net
 - Plex metadata: /var/lib/plex (SSD ext4)
 
-### Laptop (<laptop-ip>) — Ubuntu 24.04
+### Laptop (10.0.0.234) — Ubuntu 24.04
 - Dual-core, 3.7GB RAM, 232GB HDD
-- Ethernet only (enp8s0, static <laptop-ip>), WiFi DISABLED
+- Ethernet only (enp8s0, static 10.0.0.234), WiFi DISABLED
 - qBit: DL:22, Tor:650, Cache:2048MB, DHT:360
 - VPN: AirVPN WireGuard (184.75.208.10 Toronto)
 - NEVER: set qBit save path to /config/Downloads (use /downloads = NFS)
 - Guard: guard-local-downloads.timer (every 5m) + laptop-guard.timer (every 30m)
 
-### Desktop (<desktop-ip>) — CachyOS
+### Desktop (10.0.0.192) — CachyOS
 - Admin workstation, backup target
 - /mnt/500gb-1/homelab-backup/
 

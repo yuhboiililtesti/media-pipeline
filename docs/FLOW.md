@@ -24,7 +24,7 @@
               ╔═══════════▼═══════════╗
               ║    DOWNLOAD LAYER     ║
               ║                      ║
-              ║  LAPTOP <laptop-ip>   ║
+              ║  LAPTOP 10.0.0.234   ║
               ║  ┌────────────────┐  ║
               ║  │ gluetun (VPN)  │  ║
               ║  │ AirVPN WG      │  ║

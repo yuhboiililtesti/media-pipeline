@@ -1,61 +1,129 @@
-# Media Pipeline Central Configuration
-# All paths, keys, and settings in one place
+# Media Pipeline Configuration
+# This is the actual config from a working homelab setup.
+# Edit paths/ports/IPs to match your environment.
 
 pipeline:
   mode:
-    max_active_downloads: 50
+    max_active_downloads: 50     # overnight (4am-12pm)
     max_active_torrents: 500
     max_connections: 400
     schedule:
-      max_time: "04:00"
-      med_time: "12:00"
+      max_time: "04:00"          # full speed while sleeping
+      med_time: "12:00"          # chill when people are home
 
   discovery:
-    auto_add_threshold: 60
-    review_threshold: 35
+    auto_add_threshold: 60       # confidence % for auto-adding (50-80)
+    review_threshold: 35 
     max_per_day:
       movies: 25
       shows: 10
-    complete_only_mode: false
-    never_add: ""
+    complete_only_mode: false    # set true to only fill gaps, not discover new
+    never_add: ""                # comma-separated types to block
 
   storage:
     drives:
-      - path: /mnt/20TB
-        warn_pct: 90
-        slow_pct: 95
-        stop_pct: 98
-      - path: /mnt/8TB
+      - path: /mnt/20TB          # primary media drive
+        warn_pct: 90             # log warning
+        slow_pct: 95             # reduce downloads to MED mode
+        stop_pct: 98             # pause all downloads + disable roots
+      - path: /mnt/8TB           # secondary media drive
         warn_pct: 85
         stop_pct: 98
 
   paths:
     media_20tb: /mnt/20TB
     media_8tb: /mnt/8TB
-    downloads: /mnt/20TB/downloads
-    movies_root: /mnt/20TB/Movies
-    tv_root: /mnt/20TB/TV Shows
+    downloads: /mnt/20TB/homelab/media/downloads
+    movies_1: /mnt/20TB/Movies 1
+    movies_2: /mnt/8TB/Movies 2
+    tv_1: /mnt/20TB/TV Shows 1
+    tv_2: /mnt/8TB/TV Shows 2
     encode_cache: /mnt/20TB/Encode-Tmp
-    backup_target: /mnt/backup
+    backup_target: /mnt/500gb-1/homelab-backup
+    pipeline_root: /mnt/20TB/homelab/media/Pipeline
+    plex_metadata: /var/lib/plex
+    plex_transcode: /tmp
 
   services:
-    radarr: { host: localhost, port: 7878 }
-    sonarr: { host: localhost, port: 8989 }
+    radarr:   { host: localhost, port: 7878 }
+    sonarr:   { host: localhost, port: 8989 }
     prowlarr: { host: localhost, port: 9696 }
-    plex: { host: localhost, port: 32400 }
-    tdarr: { host: localhost, port: 8265 }
-    qbit_overflow: { host: 127.0.0.1, port: 8083 }
-    qbit_laptop: { host: 10.0.0.234, port: 8080 }
+    plex:     { host: localhost, port: 32400 }
+    tdarr:    { host: localhost, port: 8265 }
+    overseerr:{ host: localhost, port: 5055 }
+    bazarr:   { host: localhost, port: 6767 }
+    flaresolverr: { host: localhost, port: 8191 }
+    qbit_overflow: { host: 127.0.0.1, port: 8083 }    # server-side VPN qBit
+    qbit_laptop:   { host: 10.0.0.234, port: 8080 }   # laptop VPN qBit
 
   timers:
-    torrent_doctor: 5
-    auto_import: 1
-    anti_dupe: 30
-    stalled_rescue: 15
-    container_watchdog: 5
-    health_score: 30
-    disk_guard: 15
+    torrent_doctor: 5       # inject trackers, resume stalled
+    auto_import: 1          # import completed to Plex
+    anti_dupe: 30           # remove duplicate downloads
+    stalled_rescue: 15      # force recheck stuck 95%+
+    container_watchdog: 5   # restart dead containers
+    health_score: 30        # generate HEALTH_SCORE.json
+    disk_guard: 15          # low disk alerts
+    seed_finder: 30         # re-announce stalled
+    smart_fill: 30          # fill gaps when qBit < 150
+    complete_media: 180     # find missing seasons/sequels (3h)
     nightly_backup: "03:00"
     discovery_engine: "02:00"
     integrity_check: "03:30"
-    auto_dedup: "weekly"
+    auto_dedup: "weekly"    # Sun 3am
+    pipeline_gc: "04:00"
+
+  indexers:
+    active:
+      - EZTV
+      - LimeTorrents
+      - MagnetDownload
+      - Nyaa.si
+      - SubsPlease
+      - Torrent9
+      - TorrentsCSV
+      - YTS
+    disabled:
+      - 1337x
+      - Knaben
+      - The Pirate Bay
+      - RuTor
+      - MagnetCat
+      - Torrent Downloads
+      - Torrenting
+
+  vpn:
+    laptop:
+      provider: AirVPN
+      protocol: WireGuard
+      location: Toronto, Canada
+    overflow:
+      provider: AirVPN
+      protocol: WireGuard
+      location: New York, USA
+
+  encoding:
+    engine: Tdarr
+    gpu: NVIDIA GeForce RTX 3090 Ti (NVENC)
+    codec: HEVC (x265)
+    target_movies: 1080p
+    target_tv: 720p
+    cache_path: /mnt/20TB/Encode-Tmp
+    schedule: daily at midnight
+
+  hardware:
+    server:
+      cpu: Multi-core x86_64
+      gpu: RTX 3090 Ti 24GB
+      ram: 16GB
+      os: Arch Linux
+      docker_network: media-net
+    laptop:
+      cpu: Dual-core
+      ram: 3.7GB
+      disk: 232GB HDD
+      os: Ubuntu 24.04
+      network: Ethernet only (WiFi disabled)
+    desktop:
+      os: CachyOS (Arch-based)
+      role: Admin workstation + backup target
