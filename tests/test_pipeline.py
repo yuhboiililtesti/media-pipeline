@@ -77,3 +77,29 @@ if __name__ == "__main__":
         exit(1)
     else:
         print("\nAll tests passed")
+
+def test_config_validation():
+    """Test that config validation catches real errors."""
+    import tempfile, yaml
+    
+    # Valid config should pass
+    with tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False) as f:
+        yaml.dump({
+            "pipeline": {"mode": {"max_active_downloads": 50}},
+            "storage": {"drives": [{"path": "/tmp", "warn_pct": 90}]},
+            "paths": {"media_20tb": "/tmp", "media_8tb": "/tmp", "downloads": "/tmp", "encode_cache": "/tmp"},
+            "services": {"radarr": {}, "sonarr": {}, "prowlarr": {}, "plex": {}, "qbit_overflow": {}},
+            "timers": {"torrent_doctor": 5}
+        }, f)
+        tmp_path = f.name
+    
+    # Import and run
+    sys.path.insert(0, f"{REPO}/scripts")
+    from validate_config import validate_config
+    errors = validate_config(tmp_path)
+    os.unlink(tmp_path)
+    assert len(errors) == 0, f"Valid config should have 0 errors, got: {errors}"
+    
+    # Missing config should fail
+    errors = validate_config("/nonexistent/config.yaml")
+    assert len(errors) > 0, "Missing config should produce errors"
