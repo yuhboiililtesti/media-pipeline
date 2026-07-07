@@ -62,7 +62,7 @@ plex = 0
 if subprocess.run(["systemctl", "is-active", "--quiet", "plexmediaserver"]).returncode == 0:
     plex = 70
     try:
-        r = urllib.request.urlopen("http://localhost:32400/identity?X-Plex-Token=BJm8tFoMaeXaUn2xabWJ", timeout=5)
+        r = urllib.request.urlopen("http://localhost:32400/identity?X-Plex-Token=YOUR_PLEX_TOKEN", timeout=5)
         import xml.etree.ElementTree as ET
         root = ET.fromstring(r.read())
         if root.get("claimed") == "1": plex += 30

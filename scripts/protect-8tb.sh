@@ -5,7 +5,7 @@
 
 import os, json, urllib.request, time
 
-RADARR_KEY = 'e7746c269b2b43b2a2d102f6dea434e0'
+RADARR_KEY = 'YOUR_RADARR_API_KEY'
 SONARR_KEY = 'YOUR_SONARR_API_KEY'
 THRESHOLD = 98
 LOG = '/mnt/20TB/homelab/media/Pipeline/logs/protect-8tb.log'

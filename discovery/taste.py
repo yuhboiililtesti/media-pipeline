@@ -11,8 +11,8 @@ from datetime import datetime, timedelta
 TASTE_DIR = '/mnt/20TB/homelab/media/Pipeline/taste'
 GLOBAL_FILE = f'{TASTE_DIR}/global_profile.json'
 CACHE_FILE = f'{TASTE_DIR}/cache.json'
-PLEX_TOKEN = 'BJm8tFoMaeXaUn2xabWJ'
-TMDB_KEY = '5e00e3a8059e33e9f559bf884ed726ed'
+PLEX_TOKEN = 'YOUR_PLEX_TOKEN'
+TMDB_KEY = 'YOUR_TMDB_API_KEY'
 
 # Scoring
 DEFAULT = 1.00; MIN_SCORE = 0.15; MAX_SCORE = 3.00
@@ -110,11 +110,11 @@ def collect_radarr_fallback():
     """Fallback: use Radarr library if Plex is unreachable"""
     genres = defaultdict(int); decades = defaultdict(int); total = 0
     try:
-        r = urllib.request.urlopen(f'http://localhost:7878/api/v3/movie?apikey=e7746c269b2b43b2a2d102f6dea434e0', timeout=15)
+        r = urllib.request.urlopen(f'http://localhost:7878/api/v3/movie?apikey=YOUR_RADARR_API_KEY', timeout=15)
         for m in json.loads(r.read()):
             if not m.get('hasFile'): continue
             total += 1
-            info = urllib.request.urlopen(f'http://localhost:7878/api/v3/movie/{m["id"]}?apikey=e7746c269b2b43b2a2d102f6dea434e0', timeout=5)
+            info = urllib.request.urlopen(f'http://localhost:7878/api/v3/movie/{m["id"]}?apikey=YOUR_RADARR_API_KEY', timeout=5)
             info_data = json.loads(info.read())
             for g in info_data.get('genres', []): genres[g.lower()] += 1
             d = get_decade(info_data.get('year', 0))

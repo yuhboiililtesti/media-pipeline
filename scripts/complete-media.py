@@ -4,8 +4,8 @@
 
 import urllib.request, json, time, os
 
-TMDB_KEY = '5e00e3a8059e33e9f559bf884ed726ed'
-RADARR_KEY = 'e7746c269b2b43b2a2d102f6dea434e0'
+TMDB_KEY = 'YOUR_TMDB_API_KEY'
+RADARR_KEY = 'YOUR_RADARR_API_KEY'
 SONARR_KEY = 'YOUR_SONARR_API_KEY'
 RADARR_URL = 'http://localhost:7878/api/v3'
 SONARR_URL = 'http://localhost:8989/api/v3'

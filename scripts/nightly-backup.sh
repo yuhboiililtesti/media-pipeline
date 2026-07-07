@@ -21,7 +21,7 @@ mkdir -p "$BACKUP_DIR"/configs/radarr "$BACKUP_DIR"/configs/sonarr "$BACKUP_DIR"
 # --- 1. EXPORT ARR BACKUPS ---
 log "Exporting Radarr backup..."
 curl -s -X POST "http://localhost:7878/api/v3/command" \
-    -H "X-Api-Key: e7746c269b2b43b2a2d102f6dea434e0" \
+    -H "X-Api-Key: YOUR_RADARR_API_KEY" \
     -H "Content-Type: application/json" \
     -d '{"name":"Backup"}' > /dev/null 2>&1
 sleep 5
@@ -46,7 +46,7 @@ fi
 
 log "Exporting Prowlarr backup..."
 curl -s -X POST "http://localhost:9696/api/v1/command" \
-    -H "X-Api-Key: 1a32c876782b44279674ce4db9b78f4c" \
+    -H "X-Api-Key: YOUR_PROWLARR_API_KEY" \
     -H "Content-Type: application/json" \
     -d '{"name":"Backup"}' > /dev/null 2>&1
 sleep 5

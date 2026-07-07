@@ -65,7 +65,7 @@ def qbit_auth(url):
 
 def trigger_import():
     for name, api_url, api_key in [
-        ('Radarr', 'http://localhost:7878', 'e7746c269b2b43b2a2d102f6dea434e0'),
+        ('Radarr', 'http://localhost:7878', 'YOUR_RADARR_API_KEY'),
         ('Sonarr', 'http://localhost:8989', 'YOUR_SONARR_API_KEY'),
     ]:
         try:
@@ -147,7 +147,7 @@ def main():
     if total > 0:
         log(f'Imported {total} completed torrents')
         try:
-            urllib.request.urlopen('http://localhost:32400/library/sections/3/refresh?X-Plex-Token=BJm8tFoMaeXaUn2xabWJ', timeout=5)
+            urllib.request.urlopen('http://localhost:32400/library/sections/3/refresh?X-Plex-Token=YOUR_PLEX_TOKEN', timeout=5)
         except: pass
 
 if __name__ == '__main__':
