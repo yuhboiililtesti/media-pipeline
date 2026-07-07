@@ -36,7 +36,7 @@ else:
     log(f'20TB at {pct:.0f}% — EMERGENCY: downloads halted, root folders disabled')
     set_pipeline_mode('soft')
     # Disable 20TB roots in Radarr/Sonarr
-    RADARR_KEY = 'YOUR_RADARR_API_KEY'
+    RADARR_KEY = 'e7746c269b2b43b2a2d102f6dea434e0'
     SONARR_KEY = 'YOUR_SONARR_API_KEY'
     
     for app, url, key in [('Radarr', 'http://localhost:7878', RADARR_KEY), 

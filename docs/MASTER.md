@@ -38,7 +38,7 @@ Pipeline-Doc: /home/topaz/home/Pipeline-Doc/
 ## 2. NETWORK
 
 ```
-Router: <router-ip> (XFINITY) | Subnet: 10.0.0.0/24
+Router: <router-ip> (XFINITY) | Subnet: <local-ip>/24
 Server: <server-ip> | Laptop: <laptop-ip> | Desktop: <desktop-ip>
 
 Port Forwards: 32400 TCP → <server-ip> (Plex)

@@ -5,9 +5,9 @@ set -euo pipefail
 # Runs every 10 min via systemd timer
 
 LOG="/mnt/20TB/homelab/media/Pipeline/logs/torrent-doctor.log"
-QBIT="http://<laptop-ip>:8080"
+QBIT="http://<local-ip>:8080"
 COOKIE="/tmp/td_cookie"
-RADARR_KEY="YOUR_RADARR_API_KEY"
+RADARR_KEY="e7746c269b2b43b2a2d102f6dea434e0"
 SONARR_KEY="YOUR_SONARR_API_KEY"
 
 log() { echo "$(date '+%H:%M:%S') $1" | tee -a "$LOG"; }

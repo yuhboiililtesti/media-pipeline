@@ -3,7 +3,7 @@
 ## Topology
 ```
 Router: <router-ip> (XFINITY)
-Subnet: 10.0.0.0/24
+Subnet: <local-ip>/24
 Gateway: <router-ip>
 DNS: 1.1.1.1, 8.8.8.8
 

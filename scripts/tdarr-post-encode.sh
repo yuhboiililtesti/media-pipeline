@@ -79,7 +79,7 @@ done
 find "$CACHE" -mindepth 1 -maxdepth 1 -type d -empty -delete 2>/dev/null
 
 # Refresh Plex
-curl -s -H "X-Plex-Token: YOUR_PLEX_TOKEN" \
+curl -s -H "X-Plex-Token: BJm8tFoMaeXaUn2xabWJ" \
     "http://localhost:32400/library/sections/3/refresh?force=0" 2>/dev/null || true
 
 log "Done — processed $moved files"

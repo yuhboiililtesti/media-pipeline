@@ -85,7 +85,7 @@ curl -X POST 'http://localhost:32400/library/sections?name=Movies&type=movie&age
 
 ### Router Reset
 ```bash
-# 1. Subnet: 10.0.0.0/24
+# 1. Subnet: <local-ip>/24
 # 2. Reserve: <server-ip> (server), <laptop-ip> (laptop)
 # 3. Forward: 32400 TCP → <server-ip>
 # 4. Optional: 8090 TCP → <server-ip> (Dashboard)

@@ -6,7 +6,7 @@ import json, urllib.request, re, time
 PLEXLIST = "/mnt/20TB/homelab/media/Pipeline/plexlist.txt"
 RADARR_URL = "http://localhost:7878/api/v3"
 SONARR_URL = "http://localhost:8989/api/v3"
-RADARR_KEY = "YOUR_RADARR_API_KEY"
+RADARR_KEY = "e7746c269b2b43b2a2d102f6dea434e0"
 SONARR_KEY = "YOUR_SONARR_API_KEY"
 
 def radarr_get(path):

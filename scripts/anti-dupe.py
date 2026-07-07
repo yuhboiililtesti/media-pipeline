@@ -11,7 +11,7 @@ def log(msg):
 
 log('=== anti-dupe scan ===')
 
-for label, url in [('OVERFLOW', 'http://<qbit-overflow-url>'), ('LAPTOP', 'http://<laptop-ip>:8080')]:
+for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<local-ip>:8080')]:
     try:
         cj = urllib.request.HTTPCookieProcessor()
         o = urllib.request.build_opener(cj)

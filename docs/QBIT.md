@@ -93,6 +93,6 @@ v4: DL:15, Tor:200, Cache:1536MB — safe limits for dual-core 3.7GB
 ## LAN Protection
 ```
 bypass_local_auth: true
-bypass_auth_subnet_whitelist: 10.0.0.0/8,192.168.0.0/16,172.16.0.0/12
+bypass_auth_subnet_whitelist: <local-ip>/8,192.168.0.0/16,172.16.0.0/12
 No more IP bans from Radarr/Sonarr auth attempts
 ```

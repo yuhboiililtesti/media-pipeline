@@ -20,7 +20,7 @@ DL = $DL; UL = $UL; TOR = $TOR; CONN = $CONN
 if MODE != "status":
     print(f"Pipeline: {MODE.upper()} — applying...")
     
-    for label, url in [("OVERFLOW", "http://127.0.0.1:8083"), ("LAPTOP", "http://<laptop-ip>:8080")]:
+    for label, url in [("OVERFLOW", "http://127.0.0.1:8083"), ("LAPTOP", "http://<local-ip>:8080")]:
         try:
             c = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(c)
             o.open(urllib.request.Request(f'{url}/api/v2/auth/login',
@@ -59,7 +59,7 @@ print(f"{'='*55}")
 
 total_dl = 0; total_tor = 0; total_speed = 0
 
-for label, url in [("OVERFLOW", "http://127.0.0.1:8083"), ("LAPTOP", "http://<laptop-ip>:8080")]:
+for label, url in [("OVERFLOW", "http://127.0.0.1:8083"), ("LAPTOP", "http://<local-ip>:8080")]:
     try:
         c = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(c)
         o.open(urllib.request.Request(f'{url}/api/v2/auth/login',
@@ -118,7 +118,7 @@ echo 'Content:' && wc -l /mnt/20TB/homelab/media/Pipeline/have-list.txt /mnt/20T
 echo ''
 echo 'Health:' && cat /mnt/20TB/homelab/media/Pipeline/state/HEALTH_SCORE.json 2>/dev/null
 echo ''
-echo 'Plex:' && curl -s 'http://localhost:32400/status/sessions?X-Plex-Token=YOUR_PLEX_TOKEN' 2>/dev/null | grep -c 'Video' && echo 'streams'
+echo 'Plex:' && curl -s 'http://localhost:32400/status/sessions?X-Plex-Token=BJm8tFoMaeXaUn2xabWJ' 2>/dev/null | grep -c 'Video' && echo 'streams'
 echo '============================================='
 
 # pipeline-backlog
@@ -138,12 +138,12 @@ echo 'Backlog gaps queued.'
 import subprocess, urllib.request, json, os, sys, time, re
 from datetime import datetime
 
-QBIT = 'http://<laptop-ip>:8080'
+QBIT = 'http://<local-ip>:8080'
 QBIT_U = 'topaz'
 QBIT_P = 'YOUR_QBIT_PASSWORD'
-RADARR_KEY = 'YOUR_RADARR_API_KEY'
-SONARR_KEY = 'YOUR_SONARR_API_KEY'
-PLEX_TOKEN = 'YOUR_PLEX_TOKEN'
+RADARR_KEY = 'e7746c269b2b43b2a2d102f6dea434e0'
+SONARR_KEY = '1b24c333d0ad4157a3c709dfd560b802'
+PLEX_TOKEN = 'BJm8tFoMaeXaUn2xabWJ'
 
 OK = '\033[92m'  # green
 WARN = '\033[93m'  # yellow
@@ -324,7 +324,7 @@ if os.path.exists(hp):
 print(f"\n{b('🔒 VPN')}")
 try:
     result = subprocess.run(['ssh', '-p', '2225', '-o', 'ConnectTimeout=5', '-o', 'StrictHostKeyChecking=no',
-        'laptop@<laptop-ip>', 'sudo docker logs gluetun 2>&1 | grep "Public IP" | tail -1'],
+        'laptop@<local-ip>', 'sudo docker logs gluetun 2>&1 | grep "Public IP" | tail -1'],
         capture_output=True, text=True, timeout=8)
     if 'Public IP' in result.stdout:
         ip = result.stdout.strip().split()[-1]
@@ -344,7 +344,7 @@ echo '=== PIPELINE CLEAN ==='
 echo 'Cleaning dead torrents...'
 python3 -c "
 import urllib.request, urllib.parse, json
-for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<laptop-ip>:8080')]:
+for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<local-ip>:8080')]:
     try:
         cj = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(cj)
         o.open(urllib.request.Request(f'{url}/api/v2/auth/login', data=urllib.parse.urlencode({'username':'topaz','password':'YOUR_QBIT_PASSWORD'}).encode()), timeout=8)
@@ -396,11 +396,11 @@ case "${1:-help}" in
 
   rss)
     echo "RSS interval: ${2:-5} min"
-    curl -s 'http://localhost:7878/api/v3/config/indexer?apikey=YOUR_RADARR_API_KEY' | python3 -c "
+    curl -s 'http://localhost:7878/api/v3/config/indexer?apikey=e7746c269b2b43b2a2d102f6dea434e0' | python3 -c "
 import json,sys,urllib.request
 d=json.load(sys.stdin)
 d['rssSyncInterval'] = ${2:-5}
-urllib.request.urlopen(urllib.request.Request('http://localhost:7878/api/v3/config/indexer/'+str(d['id'])+'?apikey=YOUR_RADARR_API_KEY', data=json.dumps(d).encode(), headers={'Content-Type':'application/json'}, method='PUT'))
+urllib.request.urlopen(urllib.request.Request('http://localhost:7878/api/v3/config/indexer/'+str(d['id'])+'?apikey=e7746c269b2b43b2a2d102f6dea434e0', data=json.dumps(d).encode(), headers={'Content-Type':'application/json'}, method='PUT'))
 print('Radarr updated')
 " 2>/dev/null || echo 'Radarr API refused (try via UI)'
     ;;
@@ -547,7 +547,7 @@ echo 'Dedup complete.'
 echo '=== PIPELINE ENCODE — Tdarr Status ==='
 docker ps --format '{{.Names}} {{.Status}}' | grep tdarr
 echo ''
-echo 'Tdarr WebUI: http://<server-ip>:8265'
+echo 'Tdarr WebUI: http://<local-ip>:8265'
 echo 'Cache: /mnt/20TB/Encode-Tmp'
 echo 'Post-encode timer: every 5min'
 python3 /mnt/20TB/homelab/media/Pipeline/scripts/tdarr-post-encode.sh 2>&1 | tail -3
@@ -567,10 +567,10 @@ echo 'Pipeline FLOW activated.'
 #!/bin/bash
 echo '=== PIPELINE GROW — New Content Discovery ==='
 echo 'Running discovery engine with TMDB...'
-TMDB_KEY=YOUR_TMDB_API_KEY python3 /mnt/20TB/homelab/media/Pipeline/discovery/engine.py daily 2>&1 | tail -15
+TMDB_KEY=5e00e3a8059e33e9f559bf884ed726ed python3 /mnt/20TB/homelab/media/Pipeline/discovery/engine.py daily 2>&1 | tail -15
 echo ''
 echo 'Triggering Radarr missing movie search...'
-curl -s -X POST 'http://localhost:7878/api/v3/command?apikey=YOUR_RADARR_API_KEY' -H 'Content-Type: application/json' -d '{"name":"MissingMoviesSearch"}' > /dev/null
+curl -s -X POST 'http://localhost:7878/api/v3/command?apikey=e7746c269b2b43b2a2d102f6dea434e0' -H 'Content-Type: application/json' -d '{"name":"MissingMoviesSearch"}' > /dev/null
 echo 'Radarr search triggered — new content queued for download.'
 
 # pipeline-health
@@ -687,7 +687,7 @@ cat << 'HELP'
   │ pipeline-encode     Tdarr encoding status        │
   │   → Shows Tdarr container status                 │
   │   → Runs post-encode scan of Encode-Tmp          │
-  │   → WebUI: http://<server-ip>:8265                │
+  │   → WebUI: http://<local-ip>:8265                │
   │   → Example: pipeline-encode                     │
   │                                                   │
   │ pipeline-taste      Refresh taste profiles       │
@@ -773,19 +773,19 @@ cat << 'HELP'
   │   Sun 3am auto-dedup      (weekly dedup)         │
   │                                                   │
   │ WEB UIs:                                          │
-  │   Dashboard: http://<server-ip>:8090               │
-  │   qBit Laptop: http://<laptop-ip>:8080             │
-  │   qBit Overflow: http://<server-ip>:8083           │
-  │   Radarr: http://<server-ip>:7878                  │
-  │   Sonarr: http://<server-ip>:8989                  │
-  │   Prowlarr: http://<server-ip>:9696                │
-  │   Plex: http://<server-ip>:32400                   │
-  │   Tdarr: http://<server-ip>:8265                   │
+  │   Dashboard: http://<local-ip>:8090               │
+  │   qBit Laptop: http://<local-ip>:8080             │
+  │   qBit Overflow: http://<local-ip>:8083           │
+  │   Radarr: http://<local-ip>:7878                  │
+  │   Sonarr: http://<local-ip>:8989                  │
+  │   Prowlarr: http://<local-ip>:9696                │
+  │   Plex: http://<local-ip>:32400                   │
+  │   Tdarr: http://<local-ip>:8265                   │
   │                                                   │
   │ SSH:                                              │
-  │   ssh server     (<user>@<server-ip> -p 2223)       │
-  │   ssh laptop     (laptop@<laptop-ip> -p 2225)      │
-  │   ssh desktop    (<user>@<desktop-ip> -p 2224)       │
+  │   ssh server     (<user>@<local-ip> -p 2223)       │
+  │   ssh laptop     (laptop@<local-ip> -p 2225)      │
+  │   ssh desktop    (<user>@<local-ip> -p 2224)       │
   └───────────────────────────────────────────────────┘
 
 HELP
@@ -795,9 +795,9 @@ HELP
 echo '=== PIPELINE IMPORT — Force Import Completed Downloads ==='
 python3 /mnt/20TB/homelab/media/Pipeline/scripts/auto-import-watchdog.py 2>&1 | tail -10
 echo 'Also triggering Radarr import...'
-curl -s -X POST 'http://localhost:7878/api/v3/command?apikey=YOUR_RADARR_API_KEY' -H 'Content-Type: application/json' -d '{"name":"DownloadedMoviesScan","importMode":"move"}' > /dev/null
+curl -s -X POST 'http://localhost:7878/api/v3/command?apikey=e7746c269b2b43b2a2d102f6dea434e0' -H 'Content-Type: application/json' -d '{"name":"DownloadedMoviesScan","importMode":"move"}' > /dev/null
 echo 'Radarr DownloadedMoviesScan triggered.'
-curl -s -X POST 'http://localhost:8989/api/v3/command?apikey=YOUR_SONARR_API_KEY' -H 'Content-Type: application/json' -d '{"name":"DownloadedEpisodesScan","importMode":"move"}' > /dev/null
+curl -s -X POST 'http://localhost:8989/api/v3/command?apikey=1b24c333d0ad4157a3c709dfd560b802' -H 'Content-Type: application/json' -d '{"name":"DownloadedEpisodesScan","importMode":"move"}' > /dev/null
 echo 'Sonarr DownloadedEpisodesScan triggered.'
 
 # pipeline-log
@@ -815,7 +815,7 @@ echo 'Full logs: /mnt/20TB/homelab/media/Pipeline/logs/'
 echo '=== PIPELINE PEERS ==='
 python3 -c "
 import urllib.request, urllib.parse, json
-for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<laptop-ip>:8080')]:
+for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<local-ip>:8080')]:
     try:
         cj = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(cj)
         o.open(urllib.request.Request(f'{url}/api/v2/auth/login', data=urllib.parse.urlencode({'username':'topaz','password':'YOUR_QBIT_PASSWORD'}).encode()), timeout=8)
@@ -847,7 +847,7 @@ for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<la
 #!/bin/bash
 echo '=== PIPELINE QUEUE ==='
 echo 'Sonarr:'
-curl -s 'http://localhost:8989/api/v3/queue?apikey=YOUR_SONARR_API_KEY' 2>/dev/null | python3 -c "
+curl -s 'http://localhost:8989/api/v3/queue?apikey=1b24c333d0ad4157a3c709dfd560b802' 2>/dev/null | python3 -c "
 import json,sys; d=json.load(sys.stdin); records=d.get('records',[]); print(f'  {len(records)} items')
 for r in records[:10]:
     status=r.get('status','?'); title=r.get('title','?')[:55]; size=r.get('size',0)/1e9; left=r.get('sizeleft',0)/1e9
@@ -855,7 +855,7 @@ for r in records[:10]:
 " 2>/dev/null
 echo ''
 echo 'Radarr:'
-curl -s 'http://localhost:7878/api/v3/queue?apikey=YOUR_RADARR_API_KEY' 2>/dev/null | python3 -c "
+curl -s 'http://localhost:7878/api/v3/queue?apikey=e7746c269b2b43b2a2d102f6dea434e0' 2>/dev/null | python3 -c "
 import json,sys; d=json.load(sys.stdin); records=d.get('records',[]); print(f'  {len(records)} items')
 for r in records[:10]:
     status=r.get('status','?'); title=r.get('title','?')[:55]; size=r.get('size',0)/1e9; left=r.get('sizeleft',0)/1e9
@@ -905,8 +905,8 @@ echo 'Done. Pipeline restarted.'
 # pipeline-scan
 #!/bin/bash
 echo '=== PIPELINE SCAN — Refresh Plex Libraries ==='
-curl -s -H 'X-Plex-Token: YOUR_PLEX_TOKEN' 'http://localhost:32400/library/sections/3/refresh' > /dev/null && echo 'Movies library scan triggered'
-curl -s -H 'X-Plex-Token: YOUR_PLEX_TOKEN' 'http://localhost:32400/library/sections/4/refresh' > /dev/null && echo 'TV Shows library scan triggered'
+curl -s -H 'X-Plex-Token: BJm8tFoMaeXaUn2xabWJ' 'http://localhost:32400/library/sections/3/refresh' > /dev/null && echo 'Movies library scan triggered'
+curl -s -H 'X-Plex-Token: BJm8tFoMaeXaUn2xabWJ' 'http://localhost:32400/library/sections/4/refresh' > /dev/null && echo 'TV Shows library scan triggered'
 echo 'Plex will detect new content within 1-2 minutes.'
 
 # pipeline-seed
@@ -915,7 +915,7 @@ echo '=== PIPELINE SEED — Max Peer Discovery ==='
 python3 -c "
 import urllib.request, urllib.parse, json
 TRACKERS = ['udp://tracker.opentrackr.org:1337/announce','udp://open.demonii.com:1337/announce','udp://tracker.openbittorrent.com:6969/announce','udp://open.stealth.si:80/announce','udp://tracker.torrent.eu.org:451/announce','udp://explodie.org:6969/announce','udp://tracker.moeking.me:6969/announce','udp://tracker.bitsearch.to:1337/announce','udp://p4p.arenabg.com:1337/announce','udp://movies.zsw.ca:6969/announce','udp://retracker.lanta-net.ru:2710/announce','http://tracker.openbittorrent.com:80/announce','udp://tracker.dler.org:6969/announce','udp://odd-hd.fr:6969/announce','udp://tracker.leech.ie:1337/announce']
-for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<laptop-ip>:8080')]:
+for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<local-ip>:8080')]:
     try:
         cj = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(cj)
         o.open(urllib.request.Request(f'{url}/api/v2/auth/login', data=urllib.parse.urlencode({'username':'topaz','password':'YOUR_QBIT_PASSWORD'}).encode()), timeout=8)
@@ -960,9 +960,9 @@ docker ps --format '{{.Names}} {{.Status}}' | grep gluetun-overflow
 echo -n 'qBit overflow: '
 curl -s -m3 -o /dev/null -w '%{http_code}' 'http://127.0.0.1:8083/api/v2/app/version' 2>/dev/null && echo ' reachable' || echo ' DOWN'
 echo ''
-echo 'Radarr:' && curl -s -m3 -o /dev/null -w '%{http_code}' 'http://localhost:7878/api/v3/system/status?apikey=YOUR_RADARR_API_KEY' 2>/dev/null && echo ' reachable' || echo ' DOWN'
-echo 'Sonarr:' && curl -s -m3 -o /dev/null -w '%{http_code}' 'http://localhost:8989/api/v3/system/status?apikey=YOUR_SONARR_API_KEY' 2>/dev/null && echo ' reachable' || echo ' DOWN'
-echo 'Prowlarr:' && curl -s -m3 -o /dev/null -w '%{http_code}' 'http://localhost:9696/api/v1/system/status?apikey=YOUR_PROWLARR_API_KEY' 2>/dev/null && echo ' reachable' || echo ' DOWN'
+echo 'Radarr:' && curl -s -m3 -o /dev/null -w '%{http_code}' 'http://localhost:7878/api/v3/system/status?apikey=e7746c269b2b43b2a2d102f6dea434e0' 2>/dev/null && echo ' reachable' || echo ' DOWN'
+echo 'Sonarr:' && curl -s -m3 -o /dev/null -w '%{http_code}' 'http://localhost:8989/api/v3/system/status?apikey=1b24c333d0ad4157a3c709dfd560b802' 2>/dev/null && echo ' reachable' || echo ' DOWN'
+echo 'Prowlarr:' && curl -s -m3 -o /dev/null -w '%{http_code}' 'http://localhost:9696/api/v1/system/status?apikey=1a32c876782b44279674ce4db9b78f4c' 2>/dev/null && echo ' reachable' || echo ' DOWN'
 echo 'Plex:' && systemctl is-active plexmediaserver
 echo ''
 echo 'Download states:'
@@ -971,7 +971,7 @@ echo ''
 echo 'Stalled torrents:'
 python3 -c "
 import urllib.request, urllib.parse, json
-for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<laptop-ip>:8080')]:
+for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<local-ip>:8080')]:
     try:
         cj = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(cj)
         o.open(urllib.request.Request(f'{url}/api/v2/auth/login', data=urllib.parse.urlencode({'username':'topaz','password':'YOUR_QBIT_PASSWORD'}).encode()), timeout=5)
@@ -988,7 +988,7 @@ echo 'VERDICT:'
 python3 -c "
 import urllib.request, urllib.parse, json
 issues = []
-for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<laptop-ip>:8080')]:
+for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<local-ip>:8080')]:
     try:
         cj = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(cj)
         o.open(urllib.request.Request(f'{url}/api/v2/auth/login', data=urllib.parse.urlencode({'username':'topaz','password':'YOUR_QBIT_PASSWORD'}).encode()), timeout=5)

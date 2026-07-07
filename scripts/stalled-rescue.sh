@@ -6,7 +6,7 @@ log '=== Stalled rescue scan ==='
 python3 -c "
 import urllib.request, urllib.parse, json
 rescued = 0
-for label, url in [('OVERFLOW', 'http://<qbit-overflow-url>'), ('LAPTOP', 'http://<laptop-ip>:8080')]:
+for label, url in [('OVERFLOW', 'http://127.0.0.1:8083'), ('LAPTOP', 'http://<local-ip>:8080')]:
     try:
         cj = urllib.request.HTTPCookieProcessor(); o = urllib.request.build_opener(cj)
         o.open(urllib.request.Request(f'{url}/api/v2/auth/login', data=urllib.parse.urlencode({'username':'topaz','password':'YOUR_QBIT_PASSWORD'}).encode()), timeout=8)

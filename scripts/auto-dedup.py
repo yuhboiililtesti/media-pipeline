@@ -96,7 +96,7 @@ for root in MEDIA_ROOTS:
             except: pass
 
 for s in [3, 5]:
-    try: urllib.request.urlopen(f'http://localhost:32400/library/sections/{s}/refresh?force=0&X-Plex-Token=YOUR_PLEX_TOKEN', timeout=5)
+    try: urllib.request.urlopen(f'http://localhost:32400/library/sections/{s}/refresh?force=0&X-Plex-Token=BJm8tFoMaeXaUn2xabWJ', timeout=5)
     except: pass
 
 log(f'Kept: {kept} | Deleted: {deleted} | Freed: {freed/1e9:.1f} GB')

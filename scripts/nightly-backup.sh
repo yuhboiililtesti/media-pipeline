@@ -6,7 +6,7 @@ set -euo pipefail
 LOG="/mnt/20TB/homelab/media/Pipeline/logs/nightly-backup.log"
 DATE=$(date +%Y-%m-%d)
 BACKUP_DIR="/tmp/homelab-backup-$DATE"
-DESKTOP="<user>@<desktop-ip>"
+DESKTOP="<user>@<local-ip>"
 DESKTOP_PATH="/mnt/500gb-1/homelab-backup"
 KEEP_DAYS=7
 
@@ -21,7 +21,7 @@ mkdir -p "$BACKUP_DIR"/configs/radarr "$BACKUP_DIR"/configs/sonarr "$BACKUP_DIR"
 # --- 1. EXPORT ARR BACKUPS ---
 log "Exporting Radarr backup..."
 curl -s -X POST "http://localhost:7878/api/v3/command" \
-    -H "X-Api-Key: YOUR_RADARR_API_KEY" \
+    -H "X-Api-Key: e7746c269b2b43b2a2d102f6dea434e0" \
     -H "Content-Type: application/json" \
     -d '{"name":"Backup"}' > /dev/null 2>&1
 sleep 5
@@ -46,7 +46,7 @@ fi
 
 log "Exporting Prowlarr backup..."
 curl -s -X POST "http://localhost:9696/api/v1/command" \
-    -H "X-Api-Key: YOUR_PROWLARR_API_KEY" \
+    -H "X-Api-Key: 1a32c876782b44279674ce4db9b78f4c" \
     -H "Content-Type: application/json" \
     -d '{"name":"Backup"}' > /dev/null 2>&1
 sleep 5
@@ -82,7 +82,7 @@ cp /usr/local/bin/*.py "$BACKUP_DIR/scripts-server/" 2>/dev/null || true
 # --- 5. PULL FROM LAPTOP ---
 log "Pulling laptop configs..."
 ssh -p 2225 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
-    laptop@<laptop-ip> "tar czf /tmp/laptop-backup.tar.gz \
+    laptop@<local-ip> "tar czf /tmp/laptop-backup.tar.gz \
     /home/laptop/pipeline/docker-compose.yml \
     /home/laptop/pipeline/*.sh \
     /home/laptop/pipeline/config/ \
@@ -94,11 +94,11 @@ ssh -p 2225 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o ConnectTimeout=1
     2>/dev/null" 2>/dev/null
 
 scp -P 2225 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
-    laptop@<laptop-ip>:/tmp/laptop-backup.tar.gz "$BACKUP_DIR/laptop-backup.tar.gz" 2>/dev/null && \
+    laptop@<local-ip>:/tmp/laptop-backup.tar.gz "$BACKUP_DIR/laptop-backup.tar.gz" 2>/dev/null && \
     log "  Laptop backup pulled" || log "  Laptop unreachable — skipping"
 
 lsblk_output=$(ssh -p 2225 -i ~/.ssh/id_ed25519 -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
-    laptop@<laptop-ip> "lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,FSTYPE 2>/dev/null" 2>/dev/null)
+    laptop@<local-ip> "lsblk -o NAME,SIZE,TYPE,MOUNTPOINT,FSTYPE 2>/dev/null" 2>/dev/null)
 [ -n "$lsblk_output" ] && echo "$lsblk_output" > "$BACKUP_DIR/inventory/lsblk-laptop.txt"
 
 # --- 6. COPY SSH CONFIG ---
@@ -111,7 +111,7 @@ tar czf "/tmp/$ARCHIVE_NAME" -C /tmp "homelab-backup-$DATE" 2>/dev/null
 
 # --- 8. COPY TO DESKTOP ---
 log "Copying to desktop /mnt/500gb-1/homelab-backup/..."
-ssh -p 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 <user>@<desktop-ip> \
+ssh -p 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 <user>@<local-ip> \
     "mkdir -p $DESKTOP_PATH/archives" 2>/dev/null
 
 scp -P 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 \
@@ -138,7 +138,7 @@ find /tmp -name "homelab-backup-*.tar.gz" -mtime +$KEEP_DAYS -delete 2>/dev/null
 find "$BACKUP_DIR" -delete 2>/dev/null || rm -rf "$BACKUP_DIR" 2>/dev/null
 
 # Clean old on desktop too
-ssh -p 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 <user>@<desktop-ip> \
+ssh -p 2224 -o StrictHostKeyChecking=no -o ConnectTimeout=10 <user>@<local-ip> \
     "find $DESKTOP_PATH/archives -name 'homelab-backup-*.tar.gz' -mtime +$KEEP_DAYS -delete" 2>/dev/null
 
 log "Nightly backup complete — archive: $ARCHIVE_NAME"
