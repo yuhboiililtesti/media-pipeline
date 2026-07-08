@@ -1,97 +1,155 @@
-# HOMELAB MEDIA PIPELINE — PIPELINE-DOC v3.2
+# media-pipeline
 
-## Quick Reference
-```
-Dashboard:  http://<server-ip>:8090
-qBit:       http://<laptop-ip>:8080 (topaz / see info file)
-Radarr:     http://<server-ip>:7878
-Sonarr:     http://<server-ip>:8989
-Prowlarr:   http://<server-ip>:9696
-Plex:       http://<server-ip>:32400
-Overseerr:  http://<server-ip>:5055
-Tdarr:      http://<server-ip>:8265
+Self-driving media pipeline for Plex. Finds content, downloads it through VPNs, imports to Plex, encodes to HEVC, and keeps itself alive.
 
-Server SSH: <user>@<server-ip> -p 2223
-Laptop SSH: laptop@<laptop-ip> -p 2225
-```
+## Current State (live deployment)
 
-## Machines
+- **1,200+ torrents** across two qBittorrent instances behind WireGuard VPNs
+- **2,187 movies** tracked in Radarr (300+ downloaded)
+- **2,200+ TV episodes** across 200+ shows in Sonarr
+- **~10 MB/s** average download speed (VPN-limited)
+- **25 automation engines** running on systemd timers
+- **9 guard layers** watching for failures
+- **Zero failed services** at steady state
+- **Plex grows automatically** — 1-5 new movies per 30-minute cycle
 
-### Server (<server-ip>) — Arch Linux
-- GPU: RTX 3090 Ti (NVENC)
-- Root: 86.8G ext4 LVM (69%)
-- Drives: 20TB (60%, 7.5TB free NTFS), 8TB (91%, 744GB free NTFS), NVMe (RETIRED)
-- Docker: 10 containers on media-net
-- Plex metadata: /var/lib/plex (SSD ext4)
+## Quick Start
 
-### Laptop (<laptop-ip>) — Ubuntu 24.04
-- Dual-core, 3.7GB RAM, 232GB HDD
-- Ethernet only (enp8s0, static <laptop-ip>), WiFi DISABLED
-- qBit: DL:22, Tor:650, Cache:2048MB, DHT:360
-- VPN: AirVPN WireGuard (<vpn-public-ip> Toronto)
-- NEVER: set qBit save path to /config/Downloads (use /downloads = NFS)
-- Guard: guard-local-downloads.timer (every 5m) + laptop-guard.timer (every 30m)
-
-### Desktop (<desktop-ip>) — CachyOS
-- Admin workstation, backup target
-- /mnt/500gb-1/homelab-backup/
-
-## Pipeline Directory
-```
-/mnt/20TB/homelab/media/Pipeline/
-├── discovery/         v3.0 engine (priority hierarchy, 4 queues)
-├── safeguards/        storage/health guard + circuit breakers
-├── taste/             per-user taste profiles (topazconch, astrotopaz)
-├── candidates/        706 quarantine, 77 review, 28 rejected
-├── scripts/           17 automation scripts
-├── knowledge/         institutional memory
-├── logs/              unified logging
-├── state/             HEALTH_SCORE.json, state snapshots
-├── plexlist.txt       3,234 lines master content seed
-├── taste_profile.json global taste data
-└── KNOWN_BAD.md       institutional memory
+```bash
+git clone https://github.com/yuhboiililtesti/media-pipeline
+cd media-pipeline
+cp .env.example .env  # fill in your API keys
 ```
 
-## Download Flow
+Then read `docs/SETUP.md` for the full walkthrough.
+
+## How It Works
+
+### Download Flow
 ```
-Request → Radarr/Sonarr → Prowlarr → 10 indexers → qBit (laptop VPN)
-  → NFS write to server 20TB → Radarr detects (~1 min)
-  → Import to media folder → Remove from qBit → Plex scans → Stream
+Request → Radarr/Sonarr → Prowlarr (8 indexers) → qBit (VPN)
+  → Download complete → Auto-import (1 min) → Plex
+  → Radarr/Sonarr removes torrent → next cycle begins
 ```
 
-## Automation (18 timers active)
+### Discovery Flow (every 30 min)
 ```
-Server: torrent-doctor(10m), tdarr-post(15m), balance-8tb(30m),
-        seed-finder(30m), health-score(30m), disk-guard(15m),
-        discovery(daily 2am), nightly-backup(daily 3am),
-        complete-media(6h), protect-8tb(hourly), pipeline-gc(daily)
-
-Laptop: vpn-watchdog(60s), seed-finder(10m), cleanup-completed(5m),
-        healer-check(5m), healer-backup(daily)
+Plexlist seeds (40 taste profiles)
+  → TMDB scan (actors, directors, franchises, genres)
+  → Confidence scoring (0-100%)
+  → Auto-add (≥60%) or review queue
+  → Radarr searches → qBit downloads → Plex gets it
 ```
 
-## Language
-- Default: English for all media
-- Anime/Foreign: Dual audio (English + Original) preferred
+### Plexlist — Your Taste Profile
+The pipeline learns what you like from `plexlist.txt`:
 
-## NEVER DO
-- Mount Samsung 970 EVO Plus NVMe
-- Enable laptop WiFi
-- Run qBit or gluetun on server
-- Put Plex metadata on NTFS
-- Allow qBit local disk downloads (set save path to /config/Downloads)
-  July 2026: 179GB stuck, laptop /home at 98%. Guard: guard-local-downloads.timer
-- Worry about protect-* disabling drives — Plex reads filesystem directly, unaffected
-- balance-8tb is DISABLED (was moving media off 8TB to 20TB — backwards)
+```
+[ACTORS]         @Tom Hanks, @Morgan Freeman...
+[DIRECTORS]      @Christopher Nolan, @Denis Villeneuve...
+[FRANCHISES]     +10 (Star Wars), +13151 (Marvel)...
+[GENRES]         %Science Fiction, %Horror, %Documentary...
+[SIMILAR]        ~Inception, ~The Matrix...
+```
 
-## Current Counts
+The discovery engine scans TMDB for everything these people have made, every movie in these franchises, and similar content — then scores and adds the good stuff automatically.
+
+### Filling Gaps (backlog)
+- Complete seasons of shows you're watching (not random episodes)
+- Sequels and prequels to movies you own
+- Missing franchise installments
+- Monitored movies waiting for a good release
+
+### Self-Healing Guards
+| Guard | Interval | What it does |
+|---|---|---|
+| container-watchdog | 5 min | Restarts any dead Docker container |
+| crash-watchdog | 5 min | Detects system crashes, recovers |
+| stalled-rescue | 15 min | Force rechecks torrents stuck at 95%+ |
+| anti-dupe | 30 min | Removes same-episode duplicate downloads |
+| protect-20tb | 30 min | Slows/stops downloads when 20TB fills |
+| protect-8tb | 1 hr | Locks 8TB roots at 98% |
+| integrity-check | daily | Detects fake/corrupted/placeholder files |
+| disk-space-guard | 15 min | Alerts on low disk |
+| nightly-backup | 3am | Exports all configs to secondary machine |
+
+### Automatic Schedule
 ```
-Plex:      517 movies, 468 shows
-Radarr:    1,931 movies (124 downloaded)
-Sonarr:    200 shows (53 with episodes)
-qBit:      ~1,100 torrents, ~13 active DL, ~2 MB/s
-VPN:       AirVPN Toronto
-20TB:      60% (7.5TB free)
-8TB:       91% (744GB free)
-Health:    59/100 overall
+04:00  pipeline max     (DL=50, full speed)
+12:00  pipeline med     (DL=3, home hours)
+00:30  pipeline-flow    (seed + fill gaps + discover + import + scan)
+02:00  discovery        (TMDB scan with taste)
+03:00  nightly backup   (config export)
+03:30  integrity check  (fake file scan)
 ```
+
+### Encoding (Tdarr)
+- NVENC HEVC via RTX 3090 Ti
+- 5 libraries configured (Movies 1/2/4, TV 1/2)
+- Cache on 20TB drive at `/mnt/20TB/Encode-Tmp`
+- Post-encode script replaces originals every 5 min
+- Target: movies → 1080p HEVC, TV → 720p HEVC (~40% space savings)
+
+## Commands
+
+```bash
+pipeline soft|med|hard|max    # Download speed
+pipeline status               # Current torrent stats
+pipeline-grow                 # Discover new content
+pipeline-backlog              # Fill gaps
+pipeline-flow                 # Full: max + backlog + grow
+pipeline-clean                # Remove dead torrents + system cleanup
+pipeline-seed                 # Max peer discovery
+pipeline-stall                # Diagnose why flow stopped
+pipeline-unstall              # Emergency restart everything
+pipeline-health               # Quick health check
+pipeline-audit                # Full system audit
+pipeline-config show          # View all settings
+pipeline-help                 # Full command reference
+```
+
+## Recovery
+
+```bash
+pipeline-recover   # NFS remount + compose validate + restart + MAX
+pipeline-unstall   # Emergency nuclear option
+```
+
+See `docs/RECOVERY.md` for complete disaster recovery procedures.
+
+## File Layout
+
+```
+/mnt/20TB/
+├── Movies 1/           # Primary Plex movie library
+├── TV Shows 1/         # Primary Plex TV library
+├── Encode-Tmp/         # Tdarr transcode cache
+└── homelab/media/
+    ├── Pipeline/       # All scripts, configs, state
+    │   ├── scripts/    # 25+ automation scripts
+    │   ├── discovery/  # TMDB engine + scoring
+    │   ├── safeguards/ # Storage/health rules
+    │   ├── taste/      # Per-user profiles
+    │   ├── plexlist.txt
+    │   └── have-list.txt
+    ├── compose/        # docker-compose.yml + container configs
+    └── downloads/      # qBit download directory
+
+/mnt/8TB/
+├── Movies 2/           # Overflow movie library
+└── TV Shows 2/         # Overflow TV library
+```
+
+## Requirements
+
+- Linux server with Docker, systemd, Python 3
+- Radarr + Sonarr + Prowlarr (Docker)
+- Plex Media Server
+- qBittorrent (dual instance recommended — one VPN, one overflow)
+- TMDB API key (free)
+- NVIDIA GPU optional for Tdarr encoding
+- At least one large storage drive
+
+## License
+
+MIT
