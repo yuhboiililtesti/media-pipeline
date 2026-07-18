@@ -66,7 +66,6 @@
               │  │ Plex           │  │
               │  │ 593 movies     │  │
               │  │ 465 shows      │  │
-              │  │ GPU NVENC      │  │
               │  └────────────────┘  │
               │  ┌────────────────┐  │
               │  │ tdarr          │  │
@@ -84,7 +83,6 @@
               │                      │
               │ Remote: port 32400   │
               │ → Plex               │
-              │ → GPU transcode      │
               │ → Direct play        │
               │                      │
               │ Users: topazconch    │
@@ -101,7 +99,6 @@
   complete-media(6h) ──→ Find all gaps (seasons, eps, sequels)
   auto-dedup(6h) ──→ Remove duplicates safely
   discovery(2am) ──→ TMDB scan + scoring + plexlist
-  nightly-backup(3am) ──→ Export all to desktop
   taste-daily(2:30am) ──→ Update watch counts + genres
   taste-weekly(Sun) ──→ Director/actor affinity
   health-score(30m) ──→ HEALTH_SCORE.json

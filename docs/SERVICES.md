@@ -90,7 +90,6 @@
 - Purpose: HEVC NVENC transcoding
 - Ports: 8265 (server), 8266 (node), 8267
 - Mem limit: 2g
-- GPU: RTX 3090 Ti NVENC
 
 ### tdarr-node
 - Image: ghcr.io/haveagitgat/tdarr_node:latest
@@ -131,7 +130,6 @@
 ### plexmediaserver
 - Port: 32400
 - Libraries: Movies (387 items), TV Shows (53 items)
-- GPU: RTX 3090 Ti NVENC for hardware transcoding
 - Metadata: /var/lib/plex (on SSD)
 - Enabled: yes
 
@@ -140,13 +138,8 @@
 - Shares: server-20TB, server-8TB, topaz-home, server-root
 - Enabled: yes
 
-### libvirtd
-- Purpose: KVM/QEMU virtualization for gaming VM
 - Enabled: yes (unmasked)
 
-### gaming-vm.service
-- Purpose: Autostart gaming VM on boot
-- Chain: fix-phantom -> net-start -> start-gaming-vm -> port-fwd
 - Enabled: yes
 
 ### fix-nftables.service
@@ -186,7 +179,6 @@ Key settings:
 - gluetun-overflow: WireGuard VPN (keys from .env)
 - qbittorrent-overflow: network_mode=service:gluetun-overflow
 - radarr/sonarr: mount /mnt/20TB and /mnt/8TB directly
-- tdarr: NVIDIA GPU passthrough (NVIDIA_VISIBLE_DEVICES=all)
 - All containers: restart unless-stopped
 - Media containers have mem_limit set
 
@@ -202,5 +194,4 @@ Key variables:
 - WEBUI_PORT=8083
 - Torrent port: 51414
 - VPN_DNS=1.1.1.1
-- Drives: NVME=/mnt/nvme, HDD1=/mnt/20TB, HDD2=/mnt/8TB
 - Downloads: /mnt/20TB/homelab/media/downloads

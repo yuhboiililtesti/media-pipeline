@@ -12,7 +12,6 @@ All automated services, scripts, cron jobs, systemd units, scheduled tasks, and 
 
 | Service                     | Purpose                                 | Auto-start |
 |-----------------------------|-----------------------------------------|------------|
-| `gaming-vm.service`         | Start gaming VM, port forwarding        | Yes        |
 | `plexbot.service`           | Discord bot for Plex status             | Yes        |
 | `gluetun-qbit-sync.service` | Sync qBit port after VPN reconnect      | Yes        |
 | `qbit-watchdog.service`     | Restart qBittorrent if unresponsive     | Yes        |
@@ -21,25 +20,17 @@ All automated services, scripts, cron jobs, systemd units, scheduled tasks, and 
 
 ---
 
-## gaming-vm.service
 
 ### Unit File
 
 ```ini
 [Unit]
-Description=Gaming VM Startup & Port Forwarding
-After=libvirtd.service docker.service network.target
-Wants=libvirtd.service network.target
-Requires=libvirtd.service
 
 [Service]
 Type=oneshot
 RemainAfterExit=yes
 ExecStartPre=/bin/sleep 10
 ExecStartPre=/opt/phantom-check.sh
-ExecStart=/usr/bin/virsh start gaming-vm
-ExecStartPost=/opt/vm-port-fwd.sh
-ExecStop=/usr/bin/virsh shutdown gaming-vm
 TimeoutStartSec=300
 User=root
 
@@ -51,27 +42,17 @@ WantedBy=multi-user.target
 
 ```
 0s   → systemd starts the unit
-10s  → sleep 10s (wait for Docker networks, libvirt stabilization)
-10s+ → phantom-check.sh: verify GPU is available, no phantom display issues
-11s+ → virsh start gaming-vm: boot the Windows gaming VM
-Var. → Wait for VM boot + QEMU guest agent connectivity
-Var. → vm-port-fwd.sh: detect VM IP, create iptables DNAT rules, persist
 ```
 
 ### phantom-check.sh
 
 ```bash
 #!/bin/bash
-# Checks that the GPU is bound to vfio-pci and not claimed by host
 
-GPU_PCI="0000:01:00.0"
-DRIVER=$(basename $(readlink -f /sys/bus/pci/devices/${GPU_PCI}/driver))
 
 if [ "$DRIVER" != "vfio-pci" ]; then
-    echo "ERROR: GPU driver is $DRIVER, expected vfio-pci"
     exit 1
 fi
-echo "GPU OK: bound to vfio-pci"
 ```
 
 ---
@@ -286,34 +267,23 @@ done
 
 ## Port Forwarding Auto-Detect
 
-### vm-port-fwd.sh
 
 ```bash
 #!/bin/bash
-# /opt/vm-port-fwd.sh
-# Detects gaming VM IP via libvirt guest agent and sets up iptables NAT rules.
-# Executed as ExecStartPost in gaming-vm.service.
 
 set -e
 
-VM_NAME="gaming-vm"
 MOONLIGHT_PORTS="47989:48010"
 SSH_HOST_PORT=2225
-SSH_VM_PORT=22
 
 log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $*"; }
 
-log "Detecting VM IP for ${VM_NAME}..."
 
-VM_IP=$(virsh domifaddr "${VM_NAME}" --source agent 2>/dev/null \
     | grep ipv4 | grep -v 'lo' | awk '{print $4}' | cut -d/ -f1 | head -1)
 
-if [ -z "${VM_IP}" ]; then
-    log "ERROR: Could not detect VM IP. Is QEMU guest agent running?"
     exit 1
 fi
 
-log "VM IP detected: ${VM_IP}"
 
 # Save current Docker rules
 DOCKER_RULE=$(iptables-save -t nat | grep "PREROUTING.*addrtype.*dst-type LOCAL.*DOCKER" || true)
@@ -324,51 +294,31 @@ iptables -t nat -F PREROUTING 2>/dev/null || true
 # Restore critical Docker ADDRTYPE rule FIRST
 iptables -t nat -A PREROUTING -m addrtype --dst-type LOCAL -j DOCKER
 
-# Moonlight/GameStream
-log "Adding Moonlight port rules → ${VM_IP}"
-iptables -t nat -A PREROUTING -p tcp --dport ${MOONLIGHT_PORTS} -j DNAT --to-destination "${VM_IP}"
-iptables -t nat -A PREROUTING -p udp --dport ${MOONLIGHT_PORTS} -j DNAT --to-destination "${VM_IP}"
 
 # SSH
-log "Adding SSH port rule → ${VM_IP}:${SSH_VM_PORT}"
-iptables -t nat -A PREROUTING -p tcp --dport ${SSH_HOST_PORT} -j DNAT --to-destination "${VM_IP}:${SSH_VM_PORT}"
 
-# Add FORWARD rules for VM traffic
-iptables -I FORWARD -d "${VM_IP}" -p tcp --dport ${MOONLIGHT_PORTS} -j ACCEPT
-iptables -I FORWARD -d "${VM_IP}" -p udp --dport ${MOONLIGHT_PORTS} -j ACCEPT
-iptables -I FORWARD -d "${VM_IP}" -p tcp --dport ${SSH_VM_PORT} -j ACCEPT
 
 # Persist rules
 netfilter-persistent save
 
 log "Port forwarding configured and saved."
-log "  Moonlight: ${MOONLIGHT_PORTS} → ${VM_IP}"
-log "  SSH: ${SSH_HOST_PORT} → ${VM_IP}:${SSH_VM_PORT}"
 ```
 
 ### Detection Method
 
 | Method              | Command                                   | Reliability |
 |---------------------|-------------------------------------------|-------------|
-| `virsh domifaddr`   | `virsh domifaddr gaming-vm --source agent`| High        |
 | Fallback: ARP       | `arp -n \| grep virbr0`                    | Medium      |
-| Fallback: DHCP lease| Parse `/var/lib/libvirt/dnsmasq/virbr0.status` | Medium |
 
-### Integration with gaming-vm.service
 
 ```
-gaming-vm.service:
-  ExecStart = /usr/bin/virsh start gaming-vm
-  ExecStartPost = /opt/vm-port-fwd.sh    ← runs AFTER VM boots
 ```
 
 ---
 
-## Windows GPUForceActive
 
 ### Scheduled Task
 
-**Task Name:** `GPUForceActive`
 **Trigger:** At system startup
 **Run As:** `SYSTEM` (highest privileges)
 **Action:** Execute batch script
@@ -377,26 +327,20 @@ gaming-vm.service:
 
 ```bat
 @echo off
-REM Run on startup to force GPU active and disable feature checks
 
 REM Force display detection (prevents "no display connected" issues)
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v RMForceDisplay /t REG_DWORD /d 1 /f
 
-REM Disable NVIDIA driver feature level check
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\Class\{4d36e968-e325-11ce-bfc1-08002be10318}\0000" /v DisableFeatureCheck /t REG_DWORD /d 1 /f
 
-REM Force feature score for GPU scheduling
 reg add "HKLM\SYSTEM\CurrentControlSet\Control\GraphicsDrivers" /v FeatureScore /t REG_DWORD /d 0x1000 /f
 
-echo GPU force-active applied: %DATE% %TIME% >> C:\gpu-fix.log
 ```
 
 ### Registry Keys Applied
 
 | Key Path                                                        | Value Name             | Type    | Data  | Purpose                              |
 |-----------------------------------------------------------------|------------------------|---------|-------|--------------------------------------|
-| `Class\{4d36e968...}\0000`                                      | `RMForceDisplay`       | DWORD   | 1     | Force GPU to detect display          |
-| `Class\{4d36e968...}\0000`                                      | `DisableFeatureCheck`  | DWORD   | 1     | Skip NVIDIA driver feature check     |
 | `Control\GraphicsDrivers`                                       | `FeatureScore`         | DWORD   | 0x1000| Assign feature score for scheduling  |
 
 ---
@@ -486,21 +430,16 @@ WantedBy=multi-user.target
 
 ---
 
-## CachyOS Plasma Watchdog
 
 ### Autostart
 
 ```
-File: ~/.config/autostart/plasma-watchdog.desktop
 ```
 
 ```ini
-[Desktop Entry]
 Type=Application
-Name=Plasma Watchdog
 Comment=Restarts plasmashell if it crashes
 Exec=/home/topaz/.local/bin/plasma-watchdog.sh
-X-KDE-autostart-phase=1
 NoDisplay=true
 ```
 
@@ -536,9 +475,7 @@ Loop: Every 30 seconds
 ### All Enabled Services
 
 ```bash
-$ systemctl list-units --type=service --state=running | grep -E "gaming-vm|plexbot|gluetun-qbit|qbit-watchdog|fail2ban|netfilter"
 
-gaming-vm.service              loaded active exited  Gaming VM Startup
 plexbot.service                loaded active running PlexBot Discord Bot
 gluetun-qbit-sync.service      loaded active running Sync qBit port from gluetun VPN
 qbit-watchdog.service          loaded active running qBittorrent Watchdog
@@ -601,16 +538,13 @@ findtime = 600
        ┌────────────────────┼────────────────────┐
        │                    │                    │
   ┌────▼─────┐      ┌──────▼──────┐      ┌──────▼──────┐
-  │ libvirtd │      │   Docker    │      │ netfilter-  │
   │  starts  │      │   starts    │      │ persistent  │
   └────┬─────┘      └──────┬──────┘      └─────────────┘
        │                    │
   ┌────▼─────────┐   ┌─────▼──────────┐
-  │ gaming-vm    │   │ gluetun        │
   │ .service     │   │ + qBittorrent  │
   │   │          │   │ + media stack  │
   │   ▼          │   └────────┬───────┘
-  │ vm-port-fwd  │            │
   │   .sh        │   ┌────────▼───────┐
   └──────────────┘   │ gluetun-qbit-  │
                       │ sync.service  │

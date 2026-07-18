@@ -145,9 +145,7 @@ All systems share the same primary credential pair:
 
 | System | Username | Password | SSH Port |
 |--------|----------|----------|----------|
-| Server (CachyOS) | `topaz` | `USER_PASSWORD` | `2223` |
 | Laptop (Ubuntu) | `laptop` | `USER_PASSWORD` | `2225` |
-| Windows VM | `topaz` | `USER_PASSWORD` | `2225` |
 
 ### Quick SSH
 
@@ -158,7 +156,6 @@ ssh -p 2223 topaz@10.0.0.200
 # Laptop
 ssh -p 2225 laptop@10.0.0.234
 
-# Windows VM (via server NAT)
 ssh -p 2225 topaz@10.0.0.200
 ```
 

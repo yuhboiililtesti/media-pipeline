@@ -12,11 +12,8 @@
 
 ### Added
 - **Media Classifier (`/opt/classify_media.py`):** New automated system that scans all media directories. Detects TV shows misplaced in Movies (uses S##E##, S##., Season #, EP## patterns) and movies misplaced in TV Shows. Skips movie extras (featurettes, commentaries, NCOP/NCED, making-of). Runs every 6 hours via `classify-media.timer`.
-- **GTA V Enhanced YimMenu V2 Lua Suite:** 18 Lua scripts (8 custom + 10 original) for GTA V Enhanced on CachyOS desktop. Money safe filler, godmode, teleport, vehicle fix/upgrades, weapon giver, heal, full recovery, property unlock. Uses only confirmed APIs: `script.run_in_callback`, `natives.load_natives()`, hardcoded hashes. No gui/joaat/register_looped support in this YimMenu build.
-- **Lua API documentation:** Discovered exact YimMenu V2 Enhanced build capabilities. Available: script, natives, stats, notify, log, MONEY, NETWORK, ENTITY, PLAYER, PED, OBJECT, VEHICLE, STREAMING, HUD, PAD, TASK, CUTSCENE, WEAPON, transactions. Not available: gui, joaat, register_looped, run_in_fiber, register_callback, commands.
 
 ### Notes
-- Money injection blocked by FSL local saves. Safe filler method works (nightclub/agency/arcade safe earnings via stats API). Use YimMenu UI Recovery → Transactions for direct wallet cash.
 - Gluetun VPN health check permanently disabled — DNS resolution doesn't work through WireGuard tunnel. Container health verified by checking qBit API connectivity instead.
 
 ---
@@ -24,18 +21,15 @@
 ## v7.3 — 2026-07-15
 
 ### Fixed
-- **Server OOM crashes (ROOT CAUSE):** 31GB RAM, VM=12GB, Docker=10GB — only 3GB headroom. Server killed SSH, qBit, and Docker every few hours. Reduced VM RAM to 10GB + added memory limits to all Docker containers + sshd OOM protection (-500 score).
 - **Gluetun VPN DNS:** `DNS_UPSTREAM_PLAIN_ADDRESSES=1.1.1.1` missing port — caused gluetun crash every 4min, taking qBit offline. Fixed to `1.1.1.1:53`.
 - **Gluetun health check:** ICMP ping was failing on high-latency VPN — changed to HTTP (1.1.1.1), increased start period to 120s, added 30s tolerance.
 - **Docker restart policies:** 10 containers had `restart: no` — wouldn't survive crashes. All now `restart: unless-stopped`.
 - **Docker forward rules:** Missing after compose restart — added to `fix-nftables.service` for boot persistence.
-- **VM QXL removed:** GPU-only display. Windows renders directly to GTX 1660 SUPER. Monitor + Moonlight both work.
 - **Dual audio fix:** Pipeline now keeps English-dubbed foreign content (Squid Games, anime dubs). Only blocks pure non-English with no English audio track.
 - **qBit stability:** Relaxed health checks (60s interval, 30s timeout, 10 retries) — survives VPN reconnects and RAM pressure.
 
 ### Added
 - **Smart quality size limits:** TV episodes max 3-5GB, Movies max 4-8GB — prevents huge remux downloads.
-- **fix-phantom auto-hook:** Systemd service runs before VM start if phantom flag exists.
 - **Deduper v2:** Hash-verified, Tdarr-safe (skips recently modified files). Timer changed from daily to every 12h.
 - **Discord webhook:** Rate-limited notifications (5min cooldown) for container failures, disk warnings.
 - **Plex unmatched fixer:** Daily sweep for unmatched items, triggers re-match.
@@ -43,17 +37,9 @@
 - **Tdarr monthly report:** Space saved, files transcoded, failure count.
 
 ### Changed
-- VM RAM: 12GB → 10GB
-- VM display: QXL removed, GPU-only
-- Golden XML: Updated to 10GB + GPU-only
 - Docker: All 16 containers `restart: unless-stopped`
 - Pipeline: All scripts updated for dual audio, S2-NN detection, website prefix stripping
-- Anti-cheat: SMBIOS ASUSTeK ROG, vendor_id AuthenticAMD, kvm hidden (safe approach, no boot break)
-- Commands: `pipeline {status|dedup|health|log|search|restart}`, `vm {moon|spice|ssh|status}`
 
-### VM Status
-- GPU: GTX 1660 SUPER, VFIO passthrough, GPU-only display
-- Display: Physical monitor + Moonlight (Sunshine NVENC 1080p120)
 - RAM: 10GB
 - Autostart: Enabled
 
@@ -77,7 +63,6 @@
 
 ### Added
 - **CHANGELOG.md:** Full version history for Pipeline-Doc
-- **ECOSYSTEM.md:** Complete ecosystem documentation (CachyOS, laptop, VM, networking)
 
 ### Changed
 - batch_import.py: v2 -> v3 (correct sorting + cross-type dedup)
@@ -92,8 +77,6 @@
 - **nftables/UFW firewall conflict (ROOT CAUSE of all LAN access issues):** UFW wrote rules to iptables but nftables was the actual packet filter with policy DROP. Added 16+ missing port rules to nftables INPUT chain. Created fix-nftables.service for persistence.
 - **Plex EHOSTUNREACH:** Same root cause — nftables blocking port 32400.
 - **qBit WebUI unreachable:** Same root cause — nftables blocking port 8083.
-- **Gaming VM cold boot:** Unmasked and enabled libvirtd, enabled gaming-vm.service, VM autostart configured.
-- **VM disk resize:** Expanded from 550GB to 1TB QCOW2 + NTFS partition resize.
 - **FlareSolverr exposed:** Bound to 127.0.0.1:8191 (was 0.0.0.0).
 - **SSH password auth:** Generated ed25519 keypair, deployed to server, disabled password auth.
 - **WireGuard keys in docker-compose.yml:** Moved to .env file with perms 600.
@@ -106,7 +89,6 @@
 - **media-dedupe.py:** Cross-drive deduplication. First run: 79 dupes deleted, 132.8 GB recovered.
 - **media-dedupe.timer:** Daily dedup schedule.
 - **fix-nftables.service:** Persistent firewall rules (flush+rebuild on boot).
-- **gaming-vm.service:** VM autostart on boot.
 - **NIC tuning:** Disabled power saving, TCP keepalive 60s/10s/6 probes, WoL enabled.
 - **UFW firewall:** All internal ports restricted to 10.0.0.0/24 LAN only.
 - **SSH key auth:** ed25519 key at ~/.ssh/server_ed25519.
@@ -182,7 +164,6 @@
 | 2026-07-08 | v5.0    | Initial pipeline deployment                      |
 | 2026-07-10 | v6.0    | NTFS->ext4, SATA fix, 23-module pipeline        |
 | 2026-07-11 | v6.1    | Timer consolidation, batch import, health monitor|
-| 2026-07-13 | v7.0    | Firewall fix, VM config, security hardening     |
 | 2026-07-14 | v7.1    | Sorting fix, IPv6 fix, cross-seed fix, dedup     |
 
 ## v7.2 — 2026-07-15
@@ -195,10 +176,6 @@
 - **Plex library keys:** Pipeline used keys 8/9, actual are 1/2 — fixed in both scripts
 - **Website prefix stripping:** Added to pipeline name extraction — removes `www.Site.com`, `www Site com` prefixes
 - **WireGuard key exposure:** Public key was inline in docker-compose.yml — moved to .env
-- **VM RAM:** Set to exactly 12GB, no balloon overhead
-- **VM autostart:** libvirtd + VM auto-start on server cold boot
-- **Sunshine service:** Recreated with scheduled task for auto-start
-- **Windows Firewall:** Added rules for Sunshine ports 47984,47989,47998,48010
 - **SpongeBob:** TV show added (18 seasons) + 3 movies already in Radarr
 
 ### Changed
@@ -210,11 +187,6 @@
 - COMMANDS.md: Complete rewrite with all current commands
 - README: Updated to v7.2 with current media counts
 
-### VM Status
-- GPU: GTX 1660 SUPER, driver 560.94, VFIO passthrough
-- Sunshine v7.1 running on port 47989 (NVENC)
-- Moonlight: `vm moon`
-- SSH: `ssh vm`
 
 ---
 
@@ -225,7 +197,6 @@
 | 2026-07-08 | v5.0    | Initial pipeline deployment                      |
 | 2026-07-10 | v6.0    | NTFS->ext4, SATA fix, 23-module pipeline        |
 | 2026-07-11 | v6.1    | Timer consolidation, batch import, health monitor|
-| 2026-07-13 | v7.0    | Firewall fix, VM config, security hardening     |
 | 2026-07-14 | v7.1    | Sorting fix, IPv6 fix, cross-seed fix, dedup     |
 | 2026-07-15 | v7.2    | Auto-rename, Plex keys, dual audio, deduper v2  |
 | 2026-07-15 | v7.3    | OOM fix, gluetun DNS, QXL removed, Docker limits |

@@ -12,7 +12,6 @@ Internet → AirVPN (198.44.136.238:1637, WireGuard) → gluetun-overflow (172.2
 | Hostname    | IP          | OS              | Hardware                      | Role                    |
 |-------------|-------------|-----------------|-------------------------------|-------------------------|
 | APOS        | 10.0.0.200  | Ubuntu 24.04    | Ryzen 5800X, 31GB RAM         | Media server + Docker   |
-| Cachy       | 10.0.0.192  | CachyOS, KDE 6.7| RTX 3080                      | Moonlight client        |
 | Laptop      | 10.0.0.234  | Ubuntu          | ThinkPad SL510                | Monitoring + dashboard  |
 
 ### APOS (10.0.0.200) — Ubuntu 24.04, Ryzen 5800X, 31GB RAM
@@ -29,22 +28,13 @@ Internet → AirVPN (198.44.136.238:1637, WireGuard) → gluetun-overflow (172.2
   │   ├── decluttarr (cleanup)
   │   └── immich-server:2283, immich-postgres, immich-redis
   ├── Plex:32400 (native, Plex Pass v1.43.3)
-  ├── libvirt/KVM
-  │   ├── win10-gaming VM (192.168.122.x via virbr0 NAT)
   │   │   ├── 8 vCPUs (cores 8-15), 12GB RAM, 550GB QCOW2
   │   │   ├── GTX 1660 SUPER (vfio-pci: 0b:00.0-3)
-  │   │   ├── Sunshine NVENC: 47989-48010
-  │   │   └── SSH: 2225 (DNAT forwards to VM)
   │   └── virbr0: 192.168.122.0/24 (DHCP, NAT to enp8s0)
-  ├── GPU1: RTX 3090 Ti (host, nvidia driver 580.159.03)
-  └── GPU2: GTX 1660 SUPER (vfio-pci, isolated from host)
 ```
 
-### Cachy (10.0.0.192) — CachyOS, KDE Plasma 6.7, RTX 3080
 
 ```
-10.0.0.192 (Cachy) — CachyOS, KDE Plasma 6.7, RTX 3080
-  └── Moonlight client → streams VM desktop 1080p120
 ```
 
 ### Laptop (10.0.0.234) — Ubuntu, ThinkPad SL510
@@ -88,14 +78,12 @@ Internet → AirVPN (198.44.136.238:1637, WireGuard) → gluetun-overflow (172.2
 ```
 Cores 0-5:  Host OS + Docker pipeline
 Cores 6-7:  Reserved (buffer)
-Cores 8-15: Windows VM (8 vCPUs pinned 1:1)
 ```
 
 | Core Range | Count | Assignment               |
 |------------|-------|--------------------------|
 | 0-5        | 6     | Host OS + Docker         |
 | 6-7        | 2     | Reserved (buffer)        |
-| 8-15       | 8     | Windows VM (pinned 1:1)  |
 
 GRUB configuration:
 
@@ -103,35 +91,25 @@ GRUB configuration:
 isolcpus=6-15 hugepages=3072
 ```
 
-## GPU Allocation
 
 ```
-RTX 3090 Ti (03:00.0) → Host: nvidia driver 580 → Tdarr NVENC, Plex HW transcode
-GTX 1660 SUPER (0b:00.0) → vfio-pci → Windows VM: driver 560.94 → Sunshine NVENC
 ```
 
-| GPU              | PCI Addr  | Driver       | Consumer                     | Purpose               |
 |------------------|-----------|--------------|------------------------------|-----------------------|
-| RTX 3090 Ti      | 03:00.0   | nvidia 580   | Host                         | Tdarr NVENC, Plex HW  |
-| GTX 1660 SUPER   | 0b:00.0   | vfio-pci     | Windows VM (driver 560.94)   | Sunshine NVENC        |
 
-### GPU Affinity Table
 
-| GPU          | vfio-pci IDs       |
 |--------------|--------------------|
 | GTX 1660 S   | 0b:00.0, 0b:00.1, 0b:00.2, 0b:00.3 |
 
 ## Storage Layout
 
 ```
-/mnt/nvme (2TB):  VM disk (550GB), Plex data/transcode, Tdarr cache, swap (32GB)
 /mnt/20TB (20TB): Movies 1, TV Shows 1, downloads, Docker configs, Tdarr, Immich
 /mnt/8TB (8TB):   Movies 2, TV Shows 2, Docker overlay2 data
 ```
 
 | Mount       | Size  | Contents                                                  |
 |-------------|-------|-----------------------------------------------------------|
-| /mnt/nvme   | 2TB   | VM QCOW2 (550GB), Plex data/transcode, Tdarr cache, swap (32GB) |
 | /mnt/20TB   | 20TB  | Movies 1, TV Shows 1, downloads, Docker configs, Tdarr, Immich |
 | /mnt/8TB    | 8TB   | Movies 2, TV Shows 2, Docker overlay2 data                |
 
@@ -164,15 +142,10 @@ GTX 1660 SUPER (0b:00.0) → vfio-pci → Windows VM: driver 560.94 → Sunshine
 |---------|--------|-------------|------------------------------|
 | Plex    | 32400  | 1.43.3      | Plex Pass, native install    |
 
-## VM Configuration (win10-gaming)
 
 | Setting          | Value                              |
 |------------------|------------------------------------|
 | vCPUs            | 8 (cores 8-15, pinned 1:1)         |
 | RAM              | 12GB                               |
 | Disk             | 550GB QCOW2 on /mnt/nvme           |
-| GPU              | GTX 1660 SUPER (vfio-pci passthrough) |
-| GPU Driver       | 560.94                             |
 | Network          | virbr0 NAT, port 2225 forwarded    |
-| Streaming        | Sunshine NVENC, ports 47989-48010  |
-| Client           | Moonlight from Cachy (1080p120)    |

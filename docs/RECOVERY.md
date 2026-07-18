@@ -5,8 +5,6 @@
 ---
 
 ## OVERVIEW
-3 machines + 16 Docker containers + systemd timers + gaming VM.
-Rebuild order: Server first, then Laptop, then Desktop.
 
 ---
 
@@ -28,7 +26,6 @@ sudo blkid /dev/sdb2 /dev/sdc2 /dev/nvme0n1p1
 # Add to /etc/fstab (use actual UUIDs):
 UUID=<20TB-UUID>  /mnt/20TB  ext4  defaults,noatime,nofail  0  2
 UUID=<8TB-UUID>   /mnt/8TB   ext4  defaults,noatime,nofail  0  2
-UUID=<NVMe-UUID>  /mnt/nvme  ext4  defaults,noatime,nofail  0  2
 sudo mount -a
 ```
 
@@ -38,7 +35,6 @@ sudo mkdir -p "/mnt/20TB/Movies 1" "/mnt/20TB/TV Shows 1"
 sudo mkdir -p "/mnt/8TB/Movies 2" "/mnt/8TB/TV Shows 2"
 sudo mkdir -p /mnt/20TB/homelab/media/downloads
 sudo mkdir -p /mnt/20TB/homelab/media/compose
-sudo mkdir -p /mnt/nvme/pipeline-logs /mnt/nvme/vm
 sudo chown -R topaz:topaz /mnt/20TB /mnt/8TB /mnt/nvme
 ```
 
@@ -65,13 +61,11 @@ sudo systemctl start docker
 sudo apt update
 sudo apt install -y curl wget git python3 python3-pip net-tools nftables ufw \
   smartmontools lm-sensors samba nfs-kernel-server \
-  virt-manager libvirt-daemon-system qemu-kvm \
   unattended-upgrades ethtool
 ```
 
 ### 1.6: Configure SSH Key Auth
 ```bash
-# On CachyOS desktop:
 ssh-keygen -t ed25519 -f ~/.ssh/server_ed25519 -N ""
 ssh-copy-id -i ~/.ssh/server_ed25519 -p 2223 topaz@10.0.0.200
 
@@ -145,13 +139,7 @@ sudo systemctl start smbd nmbd
 sudo smbpasswd -a topaz  # Password: USER_PASSWORD
 ```
 
-### 1.14: Gaming VM
 ```bash
-sudo apt install -y virt-manager libvirt-daemon-system qemu-kvm
-sudo systemctl enable libvirtd
-sudo systemctl start libvirtd
-# Copy gaming-vm.service from SERVICES.md
-sudo virsh autostart win10-gaming
 ```
 
 ### 1.15: NIC Tuning
@@ -160,7 +148,6 @@ sudo ethtool --set-wol enp10s0 g
 sudo sysctl -w net.ipv4.tcp_keepalive_time=60
 sudo sysctl -w net.ipv4.tcp_keepalive_intvl=10
 sudo sysctl -w net.ipv4.tcp_keepalive_probes=6
-sudo sysctl -w vm.swappiness=10
 # Persist in /etc/sysctl.d/99-homelab.conf
 ```
 
@@ -183,11 +170,9 @@ sudo systemctl mask fwupd-refresh.service
 
 ---
 
-## PHASE 2: LAPTOP REBUILD (10.0.0.192)
 
 ### 2.1: Install Ubuntu Server
 - Username: topaz, password: USER_PASSWORD
-- Static IP: 10.0.0.192/24, gateway 10.0.0.1, DNS 1.1.1.1
 - SSH port: 2224
 
 ### 2.2: Install Packages
@@ -207,7 +192,6 @@ sudo apt install -y python3 python3-pip curl wget net-tools
 ### 2.4: Configure SSH
 ```bash
 # Set port 2224 in /etc/ssh/sshd_config
-# Deploy SSH key from desktop
 # Disable password auth
 sudo systemctl restart sshd
 ```
@@ -216,10 +200,7 @@ sudo systemctl restart sshd
 
 ## PHASE 3: DESKTOP REBUILD (10.0.0.234)
 
-### 3.1: Install CachyOS
 - Username: topaz, password: USER_PASSWORD
-- KDE Plasma 6.7 Wayland
-- RTX 3080, driver 610.43.03
 
 ### 3.2: Configure Network
 ```bash
@@ -234,9 +215,6 @@ sudo systemctl restart sshd
 //10.0.0.200/server-8TB   /mnt/server-8TB   cifs  credentials=/etc/samba/creds-server,uid=1000,gid=1000  0  0
 ```
 
-### 3.4: Moonlight Client
-- Install Moonlight
-- Connect to gaming VM at 10.0.0.200
 
 ---
 
@@ -301,7 +279,6 @@ curl -s http://localhost:32400 -H 'X-Plex-Token: PLEX_TOKEN' | head -1
 | Pipeline scripts      | /opt/                    | Live    |
 | systemd units         | /etc/systemd/system/     | Live    |
 | Pipeline-Doc          | /mnt/20TB/homelab/media/Pipeline/Pipeline-Doc/ | Manual |
-| CachyOS docs          | /home/topaz/Documents/Documention/ | Manual |
 
 ---
 

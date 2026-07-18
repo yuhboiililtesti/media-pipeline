@@ -28,7 +28,6 @@
 
 ### #2: Plex EHOSTUNREACH
 **Date:** 2026-07-13
-**Symptom:** Plex unreachable from desktop/laptop.
 **Root Cause:** Same as #1 — nftables blocking port 32400.
 **Fix:** Port 32400 added to nftables INPUT chain.
 **Result:** Plex accessible.
@@ -40,12 +39,7 @@
 **Fix:** Port 8083 added to nftables INPUT chain.
 **Result:** qBit WebUI accessible.
 
-### #4: Gaming VM Cold Boot Failure
 **Date:** 2026-07-13
-**Symptom:** VM wouldn't start after server reboot.
-**Root Cause:** libvirtd was masked, gaming-vm.service not enabled.
-**Fix:** Unmasked and enabled libvirtd, enabled gaming-vm.service, VM autostart configured. Cold boot chain: libvirtd enabled -> gaming-vm.service enabled -> VM autostart enabled -> VFIO in initramfs.
-**Result:** VM starts automatically on boot.
 
 ### #5: Pipeline Sorting — Movies Misclassified as TV
 **Date:** 2026-07-14
@@ -222,7 +216,6 @@
 **Fix:** Consolidated into single autonomous-pipeline with 23 modules.
 **Result:** No timer overlaps.
 
-### #30: CachyOS Desktop Samba Mounts Broken
 **Date:** 2026-07-10
 **Symptom:** Old fstab had wrong share names.
 **Fix:** Updated fstab with correct share names.
@@ -246,9 +239,6 @@
 **Fix:** docker exec sonarr apk add --no-cache ffmpeg.
 **Result:** Media detection working.
 
-### #34: VM Disk Resize (550GB -> 1TB)
 **Date:** 2026-07-14
-**Symptom:** VM disk too small for game installs.
-**Fix:** Shutdown VM, resized QCOW2 to 1TB, expanded NTFS partition.
 **Note:** NTFS has cluster inconsistencies — needs chkdsk /f on first Windows boot.
 **Result:** 1TB virtual disk.

@@ -13,22 +13,16 @@ DNS: 1.1.1.1, 8.8.8.8
 ┌─────────────────────────────────────────────────────────────┐
 │                    10.0.0.0/24 LAN                          │
 │                                                             │
-│  SERVER 10.0.0.200        LAPTOP 10.0.0.192                │
 │  Ubuntu 24.04 LTS         Ubuntu Server                     │
 │  RTX 3090 Ti + GTX 1660S  Dual-core, 3.7GB RAM             │
 │  SSH: 2223                SSH: 2224                         │
 │  NIC: enp10s0             NIC: enp8s0 (eth ONLY)            │
 │                                                             │
 │  DESKTOP 10.0.0.234                                        │
-│  CachyOS (Arch-based)                                      │
-│  RTX 3080, Ryzen 5 5500                                    │
-│  KDE Plasma 6.7 Wayland                                    │
-│  Moonlight client (streams gaming VM)                      │
 └─────────────────────────────────────────────────────────────┘
 
 VPN: AirVPN WireGuard
   Server:  173.249.217.19 (NYC endpoint)
-  Desktop: 10.153.205.171 (separate VPN instance)
 ```
 
 ---
@@ -41,9 +35,6 @@ VPN: AirVPN WireGuard
 │  AMD Ryzen 7 5800X (8C/16T), 31GB DDR4-3200             │
 │                                                          │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐   │
-│  │  RTX 3090 Ti │  │  GTX 1660S   │  │  RTX 3080    │   │
-│  │  (host/GPU)  │  │  (VM passthru)│  │  (CachyOS)   │   │
-│  │  NVENC encode│  │  Gaming VM   │  │  Moonlight   │   │
 │  └──────────────┘  └──────────────┘  └──────────────┘   │
 │                                                          │
 │  ┌──────────────────────────────────────────────────┐    │
@@ -73,8 +64,6 @@ VPN: AirVPN WireGuard
 │  │  SYSTEMD SERVICES                               │    │
 │  │    plexmediaserver (32400) — media server        │    │
 │  │    smbd/nmbd — Samba file sharing                │    │
-│  │    libvirtd — KVM/QEMU for gaming VM             │    │
-│  │    gaming-vm.service — VM autostart              │    │
 │  │    fix-nftables.service — firewall persistence   │    │
 │  └──────────────────────────────────────────────────┘    │
 │                                                          │
@@ -86,14 +75,12 @@ VPN: AirVPN WireGuard
 │  │    health-monitor.py (every 5m)                  │    │
 │  │    dedupe_media.py (daily)                       │    │
 │  │    recovery.py (daily)                           │    │
-│  │    gpu-reset.sh, start-gaming-vm.sh, etc.        │    │
 │  └──────────────────────────────────────────────────┘    │
 │                                                          │
 │  ┌──────────────────────────────────────────────────┐    │
 │  │  STORAGE                                        │    │
 │  │    /mnt/20TB — Movies 1, TV Shows 1, homelab    │    │
 │  │    /mnt/8TB — Movies 2, TV Shows 2, docker-data │    │
-│  │    /mnt/nvme — VM disk, pipeline logs            │    │
 │  │    / — OS + Plex metadata                        │    │
 │  └──────────────────────────────────────────────────┘    │
 └──────────────────────────────────────────────────────────┘
@@ -134,7 +121,6 @@ VPN: AirVPN WireGuard
 
 6. SERVE
    Plex serves media to clients
-   Moonlight streams gaming VM to CachyOS desktop
 
 7. MAINTAIN
    anti-seed.py (every 2m): cleans dead torrents
@@ -145,30 +131,18 @@ VPN: AirVPN WireGuard
 
 ---
 
-## GAMING VM ARCHITECTURE
 
 ```
 HOST (Ubuntu 24.04)
-  libvirtd
-    └── win10-gaming (Windows 11 Pro)
          ├── CPU: 8 vCPUs pinned to cores 8-15
          ├── RAM: 12GB
-         ├── Disk: 1TB QCOW2 at /mnt/nvme/vm/win10-gaming.qcow2
-         ├── GPU: GTX 1660 SUPER (full PCI passthrough)
          ├── Display: QXL fallback
          └── Network: via host NAT
 
 BOOT CHAIN:
-  1. libvirtd.service (enabled)
-  2. gaming-vm.service (enabled)
-     a. fix-phantom-before-vm.sh (GPU phantom fix)
      b. virsh net-start default
-     c. start-gaming-vm.sh (VFIO bind + virsh start)
-     d. vm-port-fwd.sh (iptables port forwarding)
 
 CLIENT:
-  CachyOS Desktop (10.0.0.234)
-    └── Moonlight -> connects to VM
 ```
 
 ---
@@ -209,8 +183,6 @@ CLIENT:
 └── docker-data/                 Docker data-root
 
 /mnt/nvme/
-├── vm/
-│   └── win10-gaming.qcow2      1TB VM disk
 └── pipeline-logs/
     ├── pipeline.log
     ├── import.log
@@ -226,10 +198,6 @@ CLIENT:
 ├── health-monitor.py            Container health check
 ├── dedupe_media.py              Cross-drive deduplication
 ├── recovery.py                  Disk vs library audit
-├── gpu-reset.sh                 GPU reset helper
-├── fix-phantom-before-vm.sh     GPU phantom fix
-├── start-gaming-vm.sh           VM start with VFIO bind
-├── vm-port-fwd.sh               Port forwarding for VM
 ├── server-health-scan.sh        Full health check
 └── backup-configs.sh            Config backup
 
@@ -244,7 +212,6 @@ CLIENT:
 ├── recovery-sync.{service,timer}
 ├── media-dedupe.{service,timer}
 ├── fix-nftables.service
-├── gaming-vm.service
 ├── plexmediaserver.service
 ├── samba.service
 ├── sshd.service
@@ -262,7 +229,6 @@ CLIENT:
 |-----------|---------|-----------------|----------|--------------------------|
 | Server    | topaz   | USER_PASSWORD  | 2223     | Key-based auth only      |
 | Laptop    | topaz   | USER_PASSWORD  | 2224     | Key-based auth           |
-| Desktop   | topaz   | USER_PASSWORD  | 22       | CachyOS                  |
 | Samba     | topaz   | USER_PASSWORD  | -        | All 4 shares             |
 | qBit      | topaz   | USER_PASSWORD  | -        | WebUI + API              |
 | VPN       | AirVPN  | (WireGuard key) | -        | Keys in .env, perms 600  |
@@ -294,7 +260,6 @@ CLIENT:
 | 2283  | TCP      | Immich               | 0.0.0.0        |
 | 2468  | TCP      | Cross-seed           | 0.0.0.0        |
 | 4330  | TCP      | Libvirt              | 0.0.0.0        |
-| 5900  | TCP      | SPICE (VM)           | 0.0.0.0        |
 | 9090  | TCP      | Libvirt guest        | 0.0.0.0        |
 | 44321 | TCP      | Libvirt metrics      | 0.0.0.0        |
 | 44322 | TCP      | Libvirt metrics      | 0.0.0.0        |
@@ -334,6 +299,5 @@ CLIENT:
 - DNS: 1.1.1.1 (configured in gluetun)
 - Keys: stored in /mnt/20TB/homelab/media/compose/.env (perms 600)
 
-### Desktop (AirVPN WireGuard)
 - Separate VPN instance (not routing through server)
 - Used for personal browsing

@@ -99,7 +99,6 @@ qbittorrent:
 │   ├── movies/             # Final movie files (hardlinked)
 │   └── tv/                 # Final TV files (hardlinked)
 ├── transcode_cache/        # Tdarr temporary transcode working dir
-├── tdarr/                   # Tdarr config (staging from NVMe)
 ├── backups/                 # Configuration backups
 │   ├── docker/
 │   ├── sonarr/
@@ -114,7 +113,6 @@ qbittorrent:
 ```
 /mnt/8TB/
 ├── isos/                    # OS ISO images
-├── vm-images/               # Raw VM disk images (backups)
 └── tmp/                     # General temporary storage
 ```
 
@@ -130,8 +128,6 @@ qbittorrent:
 │   ├── radarr/
 │   ├── prowlarr/
 │   └── bazarr/
-├── vm/                      # Libvirt VM images (active)
-│   └── gaming-vm.qcow2     # Windows 11 gaming VM disk
 └── transcode_cache/        # Hot Tdarr transcode staging (fast)
 ```
 
@@ -141,7 +137,6 @@ qbittorrent:
 |---------------------------|-----------------|---------|-------------------------------|
 | `/mnt/20TB`               | BTRFS RAID1     | HDD     | Primary media + downloads     |
 | `/mnt/8TB`                | EXT4            | HDD     | Scratch / bulk storage        |
-| `/mnt/nvme`               | EXT4            | NVMe SSD| Docker, VMs, appdata          |
 
 ---
 
@@ -214,7 +209,6 @@ Plugin Order:
 
 | Component      | Detail                       |
 |----------------|------------------------------|
-| **GPU**        | NVIDIA RTX 3090 Ti (24 GB)   |
 | **Encoder**    | NVENC (hevc_nvenc)           |
 | **Node CPU**   | Host CPU (all cores)         |
 | **Temp Cache** | `/mnt/nvme/transcode_cache`  |
@@ -224,7 +218,6 @@ Plugin Order:
 | Parameter         | Value |
 |-------------------|-------|
 | CPU Transcode     | 0     |
-| GPU Transcode     | 2     |
 | Health Check      | 2     |
 
 ---
@@ -268,7 +261,6 @@ Plugin Order:
 | Tdarr                 | HTTP       | `http://172.20.0.10:8265`       | 60s      |
 | Prowlarr              | HTTP       | `http://172.20.0.3:9696`        | 60s      |
 | Bazarr                | HTTP       | `http://172.20.0.8:6767`        | 60s      |
-| Gaming VM (ping)      | Ping       | `192.168.122.x` (dynamic)       | 30s      |
 | WAN Connectivity      | Ping       | `1.1.1.1`                       | 30s      |
 | gluetun VPN           | HTTP       | `http://localhost:8000`         | 60s      |
 | Decluttarr            | HTTP       | `http://172.20.0.6:3000`        | 60s      |

@@ -4,10 +4,8 @@ This is the exact setup I use. Adapt paths, IPs, and ports to your environment.
 
 ## Hardware You Need
 
-- **Server**: Any Linux box with Docker. I use Arch Linux with an RTX 3090 Ti for GPU encoding.
 - **Storage**: At least one large drive. I have a 20TB (primary) and 8TB (overflow).
 - **Laptop (optional)**: A second machine for VPN-isolated qBittorrent. I use an old Ubuntu laptop.
-- **Desktop (optional)**: Backup target. I use my CachyOS workstation.
 
 ## Step 1: Clone
 

@@ -24,13 +24,10 @@
 | Autobrr     | http://10.0.0.200:7474       | 7474   |
 | FlareSolverr| http://10.0.0.200:8191       | 8191   |
 | Immich      | http://10.0.0.200:2283       | 2283   |
-| Sunshine VM | http://10.0.0.200:47989      | 47989  |
 
 | System      | Address                      | SSH Port |
 |-------------|------------------------------|----------|
 | Server      | `ssh server` (10.0.0.200)    | 2223     |
-| VM (Win)    | `ssh vm` (10.0.0.200)        | 2225     |
-| Desktop     | CachyOS (10.0.0.192)         | —        |
 | Laptop      | 10.0.0.234                   | 2225     |
 
 ---
@@ -39,11 +36,8 @@
 
 ### Server (10.0.0.200)
 - **CPU:** AMD Ryzen 7 5800X (8C/16T) @ 3.8-4.6 GHz
-- **RAM:** 31GB DDR4-3200 (~27GB used, ~4GB free with VM running)
 - **OS:** Ubuntu 24.04 LTS
 - **NIC:** enp10s0 (TCP keepalive: 60s, WoL enabled, power saving disabled)
-- **GPU (host):** NVIDIA RTX 3090 Ti (24GB VRAM, NVENC)
-- **GPU (VM):** NVIDIA GTX 1660 SUPER (full PCI passthrough)
 
 | Device     | Size   | Mount     | FS   | Model                         | Use% |
 |------------|--------|-----------|------|-------------------------------|------|
@@ -52,22 +46,15 @@
 | /dev/sdc   | 8TB    | /mnt/8TB  | ext4 | Seagate ST8000DM004           | 6%   |
 | /dev/nvme0n1 | 1.8TB | /mnt/nvme | ext4 | Samsung 970 EVO Plus         | 8%   |
 
-### Laptop (10.0.0.192)
 - **CPU:** Dual-core
 - **RAM:** 3.7GB
 - **OS:** Ubuntu Server
-- **NIC:** enp8s0 (ethernet ONLY, static 10.0.0.192/24)
-- **SSH:** topaz@10.0.0.192 -p 2224
 - **Services:** Uptime Kuma (:3001), Heimdall (:8080), health-monitor cron
 
-### Desktop (10.0.0.234)
 - **CPU:** AMD Ryzen 5 5500 (12) @ 4.51 GHz
 - **RAM:** 15.4GB
-- **GPU:** NVIDIA RTX 3080
-- **OS:** CachyOS (Arch-based), KDE Plasma 6.7 Wayland
 - **Disk:** 2x500GB HDDs + 112GB SSD
 - **VPN:** AirVPN WireGuard
-- **Client:** Moonlight (streams gaming VM)
 
 ---
 
@@ -195,7 +182,6 @@
 /mnt/20TB/TV Shows 1      81 items    Primary TV (20TB Seagate Exos)
 /mnt/8TB/Movies 2         1741 items  Secondary movies (8TB Seagate)
 /mnt/8TB/TV Shows 2       98 items    Secondary TV (8TB Seagate)
-/mnt/nvme                 135GB used  VM disk + pipeline logs (Samsung 970 EVO Plus)
 /mnt/20TB/homelab/media/downloads  368 items  Active downloads
 ```
 
@@ -276,31 +262,19 @@ All ports restricted to 10.0.0.0/24 (LAN) except SSH.
 7878 (Radarr), 9696 (Prowlarr), 8083 (qBit WebUI), 5055 (Overseerr),
 6767 (Bazarr), 8265, 8266 (Tdarr), 7474 (Autobrr), 8191 (FlareSolverr),
 51414 (qBit torrent), 2468 (cross-seed), 4330 (Libvirt), 5900 (SPICE),
-2283 (Docker/Immich), 9090 (libvirt guest), 44321-44323 (Libvirt metrics)
 
 **Open UDP ports:** 137, 138 (NetBIOS), 51414 (qBit torrent)
 
 ---
 
-## VM CONFIGURATION
 
-- **Name:** win10-gaming
 - **OS:** Windows 11 Pro
 - **CPU:** 8 vCPUs pinned to cores 8-15
 - **RAM:** 10GB (reduced from 12GB for server stability)
-- **Disk:** 1TB QCOW2 at /mnt/nvme/vm/win10-gaming.qcow2
-- **GPU:** GTX 1660 SUPER (all 4 PCI functions, managed='no')
-- **Display:** GPU-only — QXL removed. Physical monitor + Moonlight (Sunshine NVENC)
-- **Config:** /etc/libvirt/passthrough-win10-gaming.xml
-- **Golden XML:** /mnt/20TB/homelab/backup/vm/passthrough-win10-golden.xml
 - **Autostart:** Enabled on cold boot
 
 ---
 
-## CACHYOS DESKTOP
 
-- Moonlight client streams gaming VM via GPU NVENC
 - Samba mounts: server-20TB, server-8TB
 - VPN: AirVPN WireGuard (separate from server)
-- RTX 3080, driver 610.43.03, Wayland
-- Commands: `pipeline {status|dedup|health|log|search}`, `vm {moon|ssh|status}`

@@ -1,7 +1,6 @@
 # Homelab Media Pipeline v7.1
 
 Autonomous media pipeline: download → sort → transcode → serve.  
-16 Docker containers, 6 systemd timers, gaming VM with GPU passthrough.
 
 ## What This Does
 
@@ -15,11 +14,7 @@ Autonomous media pipeline: download → sort → transcode → serve.
 
 ## Hardware
 
-| Machine | Role | CPU | GPU | RAM |
 |---------|------|-----|-----|-----|
-| Server (10.0.0.200) | Pipeline host | Ryzen 7 5800X | RTX 3090 Ti + GTX 1660S (VM) | 31GB |
-| Desktop (10.0.0.234) | Workstation + Moonlight client | Ryzen 5 5500 | RTX 3080 | 15GB |
-| Laptop (10.0.0.192) | Monitoring + Kuma/Heimdall | Dual-core | Integrated | 3.7GB |
 
 ## Quick Start
 
@@ -53,8 +48,6 @@ homelab-pipeline/
 │   ├── docker-compose.yml
 │   ├── config.env
 │   └── systemd/                 Service + timer units
-├── vm/                # VM configs
-│   └── passthrough-win10-golden.xml
 ├── docs/              # Full documentation
 │   ├── README.md
 │   ├── ECOSYSTEM.md

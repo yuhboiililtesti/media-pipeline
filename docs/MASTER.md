@@ -1,11 +1,7 @@
 # MASTER — Homelab Documentation Index
 
 ## Systems
-| System | IP | OS | GPU | Role |
 |--------|-----|-----|-----|------|
-| APOS (server) | 10.0.0.200 | Ubuntu 24.04 | RTX 3090 Ti + GTX 1660 SUPER | Server, pipeline, VM host |
-| Cachy | 10.0.0.192 | CachyOS | RTX 3080 | Gaming desktop, Moonlight client |
-| Laptop | 10.0.0.234 | Ubuntu | Intel iGPU | Monitoring, dashboard |
 
 ## Access
 ```
@@ -24,10 +20,7 @@ All passwords: USER_PASSWORD
 | SERVICES.md | Every service, port, container, process |
 | NETWORK.md | VPN, subnets, iptables, port forwarding |
 | AUTOMATION.md | Cron jobs, systemd services, auto-start chain |
-| VM-GPU.md | GPU passthrough, phantom fix, NVENC, QEMU config |
-| VM-WINDOWS.md | Windows VM OS config, drivers, tuning, SSH |
 | PIPELINE.md | Docker compose, media stack, download flow |
-| CACHYOS.md | CachyOS desktop, Wayland fix, Moonlight, SSH |
 | LAPTOP.md | Satellite monitoring, health checks, Heimdall |
 | COMMANDS.md | All useful commands, quick reference |
 | ISSUES-SOLUTIONS.md | Every issue encountered and how to fix it |

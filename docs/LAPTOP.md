@@ -50,7 +50,6 @@ All monitors run 24/7 with alerting via Discord (PlexBot webhook).
 
 | Monitor | Host | Port | Purpose |
 |---------|------|------|---------|
-| VM Sunshine | `10.0.0.200` | `47990` | Moonlight streaming endpoint |
 
 ### Ping Monitors (60s interval)
 
@@ -75,7 +74,6 @@ All monitors run 24/7 with alerting via Discord (PlexBot webhook).
 | Sonarr | 99.9% |
 | Radarr | 99.9% |
 | qBittorrent | 99.8% |
-| VM Sunshine | 98.5% (drops when VM reboots) |
 | Gateway | 99.9% |
 | DNS | 99.9% |
 
