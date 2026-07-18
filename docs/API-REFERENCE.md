@@ -1,265 +1,225 @@
-# API REFERENCE — Every API Endpoint
-# ⚠ ALL API KEYS REDACTED — see /home/topaz/home/info for actual values
-# Keys shown as RADARR_KEY, SONARR_KEY, etc. — replace with real values from info file
+# API Reference — Keys, Tokens & Credentials
 
-# API REFERENCE — Every API Endpoint, Key, and Example
+> **WARNING:** This file contains secrets. Do not commit to version control. Keep file permissions restricted.
 
-## API Keys
-```
-Radarr:   RADARR_KEY
-Sonarr:   SONARR_KEY
-Prowlarr: PROWLARR_KEY
-TMDB:     TMDB_KEY (free tier)
-Plex:     PLEX_TOKEN
-```
+---
 
-## Radarr API (http://localhost:7878/api/v3)
+## Media Stack
 
-```bash
-KEY=RADARR_KEY
+### Sonarr
 
-# System status
-curl -s http://localhost:7878/api/v3/system/status?apikey=$KEY
-
-# All movies
-curl -s http://localhost:7878/api/v3/movie?apikey=$KEY
-
-# Single movie
-curl -s http://localhost:7878/api/v3/movie/123?apikey=$KEY
-
-# Download queue
-curl -s http://localhost:7878/api/v3/queue?apikey=$KEY
-
-# History
-curl -s http://localhost:7878/api/v3/history?apikey=$KEY&pageSize=10&sortKey=date&sortDirection=descending
-
-# Download client
-curl -s http://localhost:7878/api/v3/downloadclient?apikey=$KEY
-
-# Remote path mappings
-curl -s http://localhost:7878/api/v3/remotepathmapping?apikey=$KEY
-
-# Root folders
-curl -s http://localhost:7878/api/v3/rootfolder?apikey=$KEY
-
-# Health warnings
-curl -s http://localhost:7878/api/v3/health?apikey=$KEY
-
-# Quality profiles
-curl -s http://localhost:7878/api/v3/qualityprofile?apikey=$KEY
-
-# Commands
-# MissingMoviesSearch
-curl -s -X POST http://localhost:7878/api/v3/command?apikey=$KEY -H 'Content-Type:application/json' -d '{"name":"MissingMoviesSearch"}'
-
-# DownloadedMoviesScan
-curl -s -X POST http://localhost:7878/api/v3/command?apikey=$KEY -H 'Content-Type:application/json' -d '{"name":"DownloadedMoviesScan","importMode":"move"}'
-
-# RefreshMovie
-curl -s -X POST http://localhost:7878/api/v3/command?apikey=$KEY -H 'Content-Type:application/json' -d '{"name":"RefreshMovie","movieIds":[123]}'
-
-# RescanMovie
-curl -s -X POST http://localhost:7878/api/v3/command?apikey=$KEY -H 'Content-Type:application/json' -d '{"name":"RescanMovie","movieIds":[123]}'
-
-# Add movie
-curl -s -X POST http://localhost:7878/api/v3/movie?apikey=$KEY -H 'Content-Type:application/json' -d '{"tmdbId":123,"qualityProfileId":6,"monitored":true,"rootFolderPath":"/mnt/20TB/Movies 1","addOptions":{"searchForMovie":true}}'
-
-# Update movie (unmonitor)
-curl -s -X PUT http://localhost:7878/api/v3/movie/editor?apikey=$KEY -H 'Content-Type:application/json' -d '{"movieIds":[123],"monitored":false}'
-
-# Update movie (change root folder)
-curl -s -X PUT http://localhost:7878/api/v3/movie/editor?apikey=$KEY -H 'Content-Type:application/json' -d '{"movieIds":[123],"rootFolderPath":"/mnt/20TB/Movies 4/"}'
-
-# Delete movie
-curl -s -X DELETE http://localhost:7878/api/v3/movie/123?apikey=$KEY
-```
-
-## Sonarr API (http://localhost:8989/api/v3)
+| Field | Value |
+|-------|-------|
+| URL | `http://10.0.0.200:8989` |
+| API Key | `SONARR_API_KEY` |
+| API Base | `/api/v3` |
 
 ```bash
-KEY=SONARR_KEY
-
-# System status
-curl -s http://localhost:8989/api/v3/system/status?apikey=$KEY
-
-# All series
-curl -s http://localhost:8989/api/v3/series?apikey=$KEY
-
-# Series lookup (search)
-curl -s "http://localhost:8989/api/v3/series/lookup?apikey=$KEY&term=Rick+and+Morty"
-
-# Series lookup by TMDB
-curl -s "http://localhost:8989/api/v3/lookup?apikey=$KEY&term=tmdb:60625"
-
-# Download queue
-curl -s http://localhost:8989/api/v3/queue?apikey=$KEY
-
-# Wanted/missing episodes
-curl -s http://localhost:8989/api/v3/wanted/missing?apikey=$KEY&pageSize=100
-
-# Download client
-curl -s http://localhost:8989/api/v3/downloadclient?apikey=$KEY
-
-# Remote path mappings
-curl -s http://localhost:8989/api/v3/remotepathmapping?apikey=$KEY
-
-# Root folders
-curl -s http://localhost:8989/api/v3/rootfolder?apikey=$KEY
-
-# Commands
-# SeriesSearch
-curl -s -X POST http://localhost:8989/api/v3/command?apikey=$KEY -H 'Content-Type:application/json' -d '{"name":"SeriesSearch","seriesId":123}'
-
-# DownloadedEpisodesScan
-curl -s -X POST http://localhost:8989/api/v3/command?apikey=$KEY -H 'Content-Type:application/json' -d '{"name":"DownloadedEpisodesScan","importMode":"move"}'
-
-# RefreshSeries
-curl -s -X POST http://localhost:8989/api/v3/command?apikey=$KEY -H 'Content-Type:application/json' -d '{"name":"RefreshSeries"}'
-
-# Add series
-curl -s -X POST http://localhost:8989/api/v3/series?apikey=$KEY -H 'Content-Type:application/json' -d '{"tvdbId":123,"title":"Show Name","qualityProfileId":3,"monitored":true,"rootFolderPath":"/mnt/20TB/TV Shows 1","addOptions":{"searchForMissingEpisodes":true}}'
+# Test
+curl -s "http://10.0.0.200:8989/api/v3/system/status?apikey=SONARR_API_KEY"
 ```
 
-## Prowlarr API (http://localhost:9696/api/v1)
+### Radarr
+
+| Field | Value |
+|-------|-------|
+| URL | `http://10.0.0.200:7878` |
+| API Key | `RADARR_API_KEY` |
+| API Base | `/api/v3` |
 
 ```bash
-KEY=PROWLARR_KEY
-
-# All indexers
-curl -s http://localhost:9696/api/v1/indexer?apikey=$KEY
-
-# Enable/disable indexer
-curl -s -X PUT http://localhost:9696/api/v1/indexer/5?apikey=$KEY -H 'Content-Type:application/json' -d '{"enable":false,...}'
-
-# Add indexer (TorrentRss)
-curl -s -X POST http://localhost:9696/api/v1/indexer?apikey=$KEY -H 'Content-Type:application/json' -d '{"name":"EZTV","enable":true,"protocol":"torrent","implementation":"TorrentRssIndexer","configContract":"TorrentRssIndexerSettings","fields":[{"name":"baseUrl","value":"https://eztvx.to"}],"categories":[5000]}'
+# Test
+curl -s "http://10.0.0.200:7878/api/v3/system/status?apikey=RADARR_API_KEY"
 ```
 
-## Plex API (http://localhost:32400)
+### Prowlarr
+
+| Field | Value |
+|-------|-------|
+| URL | `http://10.0.0.200:9696` |
+| API Key | `PROWLARR_API_KEY` |
+| API Base | `/api/v1` |
 
 ```bash
-TOKEN=PLEX_TOKEN
-
-# Server identity
-curl -s "http://localhost:32400/identity?X-Plex-Token=$TOKEN"
-
-# Library sections
-curl -s "http://localhost:32400/library/sections?X-Plex-Token=$TOKEN"
-
-# All movies
-curl -s "http://localhost:32400/library/sections/3/all?type=1&X-Plex-Token=$TOKEN"
-
-# All TV shows
-curl -s "http://localhost:32400/library/sections/5/all?X-Plex-Token=$TOKEN"
-
-# Show details (seasons)
-curl -s "http://localhost:32400/library/metadata/12345/children?X-Plex-Token=$TOKEN"
-
-# Season episodes
-curl -s "http://localhost:32400/library/metadata/67890/children?X-Plex-Token=$TOKEN"
-
-# Refresh library
-curl -s "http://localhost:32400/library/sections/3/refresh?X-Plex-Token=$TOKEN"
-
-# Active sessions
-curl -s "http://localhost:32400/status/sessions?X-Plex-Token=$TOKEN"
-
-# Set preferences
-curl -s -X PUT "http://localhost:32400/:/prefs?PlexOnlineHome=0" -H "X-Plex-Token: $TOKEN"
-
-# User accounts
-curl -s "http://localhost:32400/accounts?X-Plex-Token=$TOKEN"
-
-# Plex.tv shared users
-curl -s "https://plex.tv/api/users?X-Plex-Token=$TOKEN"
+# Test
+curl -s "http://10.0.0.200:9696/api/v1/system/status?apikey=PROWLARR_API_KEY"
 ```
 
-## qBittorrent API (http://<laptop-ip>:8080/api/v2)
+### qBittorrent
+
+| Field | Value |
+|-------|-------|
+| URL | `http://10.0.0.200:8081` |
+| Username | `topaz` |
+| Password | `USER_PASSWORD` |
+| API Base | `/api/v2` |
 
 ```bash
-USER=topaz; PASS=(see info file)
+# Login + get SID cookie
+curl -s -c /tmp/qbit.cookie \
+  --data "username=topaz&password=USER_PASSWORD" \
+  "http://10.0.0.200:8081/api/v2/auth/login"
 
-# Login (needed for all other calls)
-curl -c /tmp/qb -L http://<laptop-ip>:8080/api/v2/auth/login --data-urlencode "username=$USER" --data-urlencode "password=$PASS"
-
-# Transfer info
-curl -b /tmp/qb http://<laptop-ip>:8080/api/v2/transfer/info
-
-# All torrents
-curl -b /tmp/qb http://<laptop-ip>:8080/api/v2/torrents/info
-
-# Filtered (completed, downloading, stalled, paused, errored)
-curl -b /tmp/qb "http://<laptop-ip>:8080/api/v2/torrents/info?filter=completed"
-
-# Preferences
-curl -b /tmp/qb http://<laptop-ip>:8080/api/v2/app/preferences
-
-# Set preferences
-curl -b /tmp/qb http://<laptop-ip>:8080/api/v2/app/setPreferences -d 'json={"max_active_downloads":15}'
-
-# Add trackers
-curl -b /tmp/qb -X POST http://<laptop-ip>:8080/api/v2/torrents/addTrackers --data-urlencode "hash=ABC" --data-urlencode "urls=udp://tracker..."
-
-# Re-announce
-curl -b /tmp/qb -X POST http://<laptop-ip>:8080/api/v2/torrents/reannounce --data-urlencode "hashes=ABC|DEF"
-
-# Force recheck
-curl -b /tmp/qb -X POST http://<laptop-ip>:8080/api/v2/torrents/recheck --data-urlencode "hashes=ABC"
-
-# Resume
-curl -b /tmp/qb -X POST http://<laptop-ip>:8080/api/v2/torrents/resume --data-urlencode "hashes=ABC"
-
-# Delete (keep files)
-curl -b /tmp/qb -X POST http://<laptop-ip>:8080/api/v2/torrents/delete --data-urlencode "hashes=ABC" --data-urlencode "deleteFiles=false"
-
-# Torrent trackers
-curl -b /tmp/qb "http://<laptop-ip>:8080/api/v2/torrents/trackers?hash=ABC"
-
-# Change password
-curl -b /tmp/qb http://<laptop-ip>:8080/api/v2/app/setPreferences -d 'json={"web_ui_password":"newpass"}'
+# Get transfer info
+curl -s -b /tmp/qbit.cookie \
+  "http://10.0.0.200:8081/api/v2/transfer/info"
 ```
 
-## TMDB API (https://api.themoviedb.org/3)
+---
+
+## Plex
+
+| Field | Value |
+|-------|-------|
+| URL | `http://10.0.0.200:32400` |
+| Token | `PLEX_TOKEN` |
+| Token source | `/etc/pipeline/config.json` |
+
+### Token Refresh
+
+If the token needs updating:
+
+1. Sign in at `https://app.plex.tv`
+2. Inspect any API request → look for `X-Plex-Token` header
+3. Update both:
+   - `/etc/pipeline/config.json`
+   - This document
 
 ```bash
-KEY=TMDB_KEY
-
-# Search movie
-curl -s "https://api.themoviedb.org/3/search/movie?api_key=$KEY&query=Inception"
-
-# Search TV
-curl -s "https://api.themoviedb.org/3/search/tv?api_key=$KEY&query=Breaking+Bad"
-
-# Search person
-curl -s "https://api.themoviedb.org/3/search/person?api_key=$KEY&query=Christopher+Nolan"
-
-# Search collection
-curl -s "https://api.themoviedb.org/3/search/collection?api_key=$KEY&query=Star+Wars"
-
-# Movie details
-curl -s "https://api.themoviedb.org/3/movie/27205?api_key=$KEY"
-
-# Movie credits
-curl -s "https://api.themoviedb.org/3/movie/27205/credits?api_key=$KEY"
-
-# Person movie credits
-curl -s "https://api.themoviedb.org/3/person/525/movie_credits?api_key=$KEY"
-
-# Collection
-curl -s "https://api.themoviedb.org/3/collection/10?api_key=$KEY"
-
-# Similar movies
-curl -s "https://api.themoviedb.org/3/movie/27205/recommendations?api_key=$KEY"
-
-# Discover by genre
-curl -s "https://api.themoviedb.org/3/discover/movie?api_key=$KEY&with_genres=878&sort_by=popularity.desc"
-
-# Trending
-curl -s "https://api.themoviedb.org/3/trending/movie/week?api_key=$KEY"
-
-# Popular
-curl -s "https://api.themoviedb.org/3/movie/popular?api_key=$KEY"
-
-# Genre list
-curl -s "https://api.themoviedb.org/3/genre/movie/list?api_key=$KEY"
+# Test
+curl -s "http://10.0.0.200:32400/?X-Plex-Token=PLEX_TOKEN"
 ```
+
+---
+
+## Discord (PlexBot)
+
+| Field | Value |
+|-------|-------|
+| Bot token | In `/etc/pipeline/config.json` (field: `discord_token`) |
+| Webhook URL | In `/etc/pipeline/config.json` (field: `discord_webhook`) |
+
+```bash
+# Extract token
+jq -r '.discord_token' /etc/pipeline/config.json
+```
+
+---
+
+## TMDB (The Movie Database)
+
+| Field | Value |
+|-------|-------|
+| API Key (v3) | `5e00e3a8059e33e9f559bf884ed726ed` |
+| API Base | `https://api.themoviedb.org/3` |
+
+Used by: **Sonarr**, **Radarr**, **Overseerr** for metadata and artwork.
+
+```bash
+# Test
+curl -s "https://api.themoviedb.org/3/movie/550?api_key=5e00e3a8059e33e9f559bf884ed726ed"
+```
+
+---
+
+## Decluttarr
+
+| Field | Value |
+|-------|-------|
+| Config file | `/mnt/20TB/homelab/media/compose/decluttarr/config.yaml` |
+
+### Credentials (embedded in config)
+
+| Service | Credential |
+|---------|------------|
+| Sonarr API Key | `SONARR_API_KEY` |
+| Radarr API Key | `RADARR_API_KEY` |
+| qBittorrent User | `topaz` |
+| qBittorrent Pass | `USER_PASSWORD` |
+
+---
+
+## System Credentials
+
+All systems share the same primary credential pair:
+
+| System | Username | Password | SSH Port |
+|--------|----------|----------|----------|
+| Server (CachyOS) | `topaz` | `USER_PASSWORD` | `2223` |
+| Laptop (Ubuntu) | `laptop` | `USER_PASSWORD` | `2225` |
+| Windows VM | `topaz` | `USER_PASSWORD` | `2225` |
+
+### Quick SSH
+
+```bash
+# Server
+ssh -p 2223 topaz@10.0.0.200
+
+# Laptop
+ssh -p 2225 laptop@10.0.0.234
+
+# Windows VM (via server NAT)
+ssh -p 2225 topaz@10.0.0.200
+```
+
+---
+
+## Centralized Config File
+
+All secrets and environment variables are consolidated in:
+
+```
+/etc/pipeline/config.json
+```
+
+### Schema (partial)
+
+```json
+{
+  "plex_token": "PLEX_TOKEN",
+  "discord_token": "XXXXXXXXXX",
+  "discord_webhook": "https://discord.com/api/webhooks/...",
+  "tmdb_key": "5e00e3a8059e33e9f559bf884ed726ed",
+  "sonarr": {
+    "url": "http://10.0.0.200:8989",
+    "api_key": "SONARR_API_KEY"
+  },
+  "radarr": {
+    "url": "http://10.0.0.200:7878",
+    "api_key": "RADARR_API_KEY"
+  },
+  "prowlarr": {
+    "url": "http://10.0.0.200:9696",
+    "api_key": "PROWLARR_API_KEY"
+  },
+  "qbittorrent": {
+    "url": "http://10.0.0.200:8081",
+    "username": "topaz",
+    "password": "USER_PASSWORD"
+  }
+}
+```
+
+### Permissions
+
+```bash
+sudo chmod 600 /etc/pipeline/config.json
+sudo chown root:root /etc/pipeline/config.json
+```
+
+---
+
+## API Quick Test (All Services)
+
+```bash
+#!/bin/bash
+# Quick smoke test of all API endpoints
+curl -s -o /dev/null -w "Sonarr:    %{http_code}\n" "http://10.0.0.200:8989/api/v3/system/status?apikey=SONARR_API_KEY"
+curl -s -o /dev/null -w "Radarr:    %{http_code}\n" "http://10.0.0.200:7878/api/v3/system/status?apikey=RADARR_API_KEY"
+curl -s -o /dev/null -w "Prowlarr:  %{http_code}\n" "http://10.0.0.200:9696/api/v1/system/status?apikey=PROWLARR_API_KEY"
+curl -s -o /dev/null -w "qBit:      %{http_code}\n" "http://10.0.0.200:8081/api/v2/app/version"
+curl -s -o /dev/null -w "Plex:      %{http_code}\n" "http://10.0.0.200:32400/identity"
+curl -s -o /dev/null -w "TMDB:      %{http_code}\n" "https://api.themoviedb.org/3/configuration?api_key=5e00e3a8059e33e9f559bf884ed726ed"
+```
+
+Save as `/tmp/api-smoke.sh` on server, `chmod +x`, run anytime for a full health sweep.

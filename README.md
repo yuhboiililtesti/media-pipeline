@@ -1,169 +1,108 @@
-# media-pipeline
+# Homelab Media Pipeline v7.1
 
-A self-driving media pipeline for Plex. Finds content you'll actually like, downloads it, imports it, encodes it, and keeps itself running. Built for my homelab, shared in case it helps yours.
+Autonomous media pipeline: download → sort → transcode → serve.  
+16 Docker containers, 6 systemd timers, gaming VM with GPU passthrough.
 
-## Features
+## What This Does
 
-- **Content discovery** — scans TMDB using your taste profile (actors, directors, genres, franchises you like)
-- **Gap filling** — finds missing episodes, seasons, sequels, and franchise holes
-- **Dual VPN download** — two qBittorrent instances behind WireGuard with automatic failover
-- **Auto-import** — completed downloads hit Plex within a minute
-- **Space-saving encode** — Tdarr re-encodes to HEVC via NVENC or CPU (~40% smaller)
-- **Self-healing** — 9 watchdog timers handle crashes, stalls, duplicates, corrupted files, and disk pressure
-- **Scheduled modes** — goes full speed while you sleep, chills during the day
+- **Downloads** via qBittorrent (routed through AirVPN WireGuard)
+- **Sorts** automatically: movies vs TV episodes (robust detection, no misclassification)
+- **Imports** into Radarr/Sonarr → renamed → Plex notified
+- **Transcodes** to HEVC via Tdarr + NVENC
+- **Deduplicates** across drives (daily scan, 132GB+ recovered)
+- **Self-heals**: auto-restarts failed containers every 5 min
+- **Backfills**: searches for missing content when queue is low
+
+## Hardware
+
+| Machine | Role | CPU | GPU | RAM |
+|---------|------|-----|-----|-----|
+| Server (10.0.0.200) | Pipeline host | Ryzen 7 5800X | RTX 3090 Ti + GTX 1660S (VM) | 31GB |
+| Desktop (10.0.0.234) | Workstation + Moonlight client | Ryzen 5 5500 | RTX 3080 | 15GB |
+| Laptop (10.0.0.192) | Monitoring + Kuma/Heimdall | Dual-core | Integrated | 3.7GB |
 
 ## Quick Start
 
 ```bash
-git clone https://github.com/yuhboiililtesti/media-pipeline
-cd media-pipeline
+# Clone
+git clone <repo-url> ~/homelab-pipeline
+cd ~/homelab-pipeline
+
+# Deploy to server
+scp -r scripts/* server:/opt/
+ssh server "sudo systemctl enable --now autonomous-pipeline.timer batch-import.timer health-monitor.timer anti-seed.timer"
+
+# Deploy configs (secrets removed — fill in your own)
+scp configs/docker-compose.yml server:/mnt/20TB/homelab/media/compose/
 ```
 
-1. Set your API keys in the scripts (search for `YOUR_` placeholders)
-2. Point paths to your media drives
-3. Get a free TMDB API key from themoviedb.org
-4. Install the systemd units:
-
-```bash
-sudo cp systemd/*.service systemd/*.timer /etc/systemd/system/
-sudo systemctl daemon-reload
-sudo systemctl enable pipeline-max.timer pipeline-day.timer
-```
-
-5. Seed your taste profile in `plexlist.txt`:
+## Directory Structure
 
 ```
-[ACTORS]
-@Tom Hanks
-@Cate Blanchett
-
-[DIRECTORS]
-@Denis Villeneuve
-@Hayao Miyazaki
-
-[FRANCHISES]
-+10    # Star Wars
-+13151 # Marvel
-
-[GENRES]
-%Science Fiction
-%Horror
-
-[SIMILAR]
-~Inception
-~Arrival
+homelab-pipeline/
+├── scripts/           # Pipeline scripts (deploy to /opt/)
+│   ├── autonomous-pipeline.py   v7.1 master controller
+│   ├── batch_import.py          v3: correct sorting + dedup
+│   ├── anti-seed.py             v2: dead/zero-seed cleanup
+│   ├── health-monitor.py        Container health check
+│   ├── dedupe_media.py          Cross-drive deduplication
+│   ├── recovery.py              Disk vs library audit
+│   ├── plexbot.py               Discord bot v2.0
+│   └── *.sh                     Helper scripts
+├── configs/           # Config templates (SECRETS REMOVED)
+│   ├── docker-compose.yml
+│   ├── config.env
+│   └── systemd/                 Service + timer units
+├── vm/                # VM configs
+│   └── passthrough-win10-golden.xml
+├── docs/              # Full documentation
+│   ├── README.md
+│   ├── ECOSYSTEM.md
+│   ├── RECOVERY.md
+│   ├── ISSUES-SOLUTIONS.md
+│   ├── CHANGELOG.md
+│   └── JARVIS-BLUEPRINT.md
+├── backups/           # Config backups
+└── .gitignore         # Excludes secrets
 ```
 
-## Commands
+## Services
 
-**Modes**
-```bash
-pipeline max        # 50 concurrent downloads
-pipeline hard       # 20 concurrent
-pipeline med        # 3 concurrent (home hours)
-pipeline soft       # pause everything
-pipeline status     # current stats
-```
+| Service | Port | Purpose |
+|---------|------|---------|
+| Plex | 32400 | Media server |
+| qBittorrent | 8083 | Downloads (via VPN) |
+| Sonarr | 8989 | TV management |
+| Radarr | 7878 | Movie management |
+| Prowlarr | 9696 | Indexer hub |
+| Tdarr | 8265 | HEVC transcode |
+| Overseerr | 5055 | Media requests |
+| Cross-seed | 2468 | Cross-tracker seeding |
+| FlareSolverr | 8191 | Cloudflare bypass |
+| Immich | 2283 | Photo management |
 
-**Content**
-```bash
-pipeline-grow       # discover new content (TMDB + taste)
-pipeline-backlog    # fill missing episodes and sequels
-pipeline-flow       # max mode + backlog + grow
-pipeline-scan       # force Plex library refresh
-pipeline-import     # force import completed downloads
-pipeline-queue      # show what's in the download queue
-```
+## Timers
 
-**Maintenance**
-```bash
-pipeline-clean      # remove dead torrents + free system space
-pipeline-seed       # inject trackers + re-announce everything
-pipeline-dedup      # scan for duplicate media files
-pipeline-taste      # refresh taste profiles from Plex library
-pipeline-daily      # run all daily maintenance tasks
-pipeline-log        # quick peek at all logs
-```
+| Timer | Interval | What |
+|-------|----------|------|
+| anti-seed | 2 min | Clean dead torrents |
+| autonomous-pipeline | 10 min | Full pipeline cycle |
+| batch-import | 30 min | Sort downloads to media dirs |
+| health-monitor | 5 min | Restart failed containers |
+| recovery-sync | daily | Disk vs library audit |
+| media-dedupe | daily | Cross-drive dedup |
 
-**Diagnostics**
-```bash
-pipeline-health     # quick health overview
-pipeline-audit      # full system audit
-pipeline-stall      # figure out why downloads stopped
-pipeline-peers      # seed/peer stats per qBit instance
-pipeline-vpn        # check both VPN connections
-pipeline-space      # disk usage breakdown
-```
+## Security
 
-**Emergency**
-```bash
-pipeline-unstall    # restart everything + recover + reseed
-pipeline-recover    # NFS remount, compose validate, restart containers
-pipeline-config     # change settings on the fly
-pipeline-help       # full reference with examples
-```
+- SSH: key-based only (ed25519), password auth disabled
+- Firewall: nftables (policy DROP) + UFW, LAN-only ports
+- Secrets: stored in .env and config.json (perms 600), NOT in git
+- VPN: AirVPN WireKill for all torrent traffic
 
-## Self-Healing
+## Recovery
 
-| Problem | Guard | Runs |
-|---|---|---|
-| Dead Docker container | `container-watchdog` | every 5min |
-| System crash | `crash-watchdog` | every 5min |
-| Torrent stuck at 99% | `stalled-rescue` | every 15min |
-| Same episode downloaded twice | `anti-dupe` | every 30min |
-| Disk filling up (20TB) | `protect-20tb` | every 30min |
-| Disk filling up (8TB) | `protect-8tb` | hourly |
-| Fake/corrupt media files | `integrity-check` | daily 3:30am |
-| VPN dropped | `vpn-watchdog` (laptop) | every 60s |
-| Low disk space | `disk-space-guard` | every 15min |
-
-## Auto Schedule
-
-```
-04:00   pipeline max     full speed while everyone sleeps
-12:00   pipeline med     chill mode for home hours
-02:00   discovery        TMDB scan for new content
-03:00   nightly backup   config export to secondary machine
-03:30   integrity check  scan for bad files
-Sun 03  auto-dedup       weekly duplicate cleanup
-```
-
-## Architecture
-
-```
-                   ┌─ Prowlarr (8 indexers)
-                   │
-Request ──→ Radarr/Sonarr ──→ qBit (VPN) ──→ Download complete
-                   │                              │
-                   │                         Auto-import (1min)
-                   │                              │
-                   │                           Plex ──→ Tdarr (HEVC encode)
-                   │                              │
-                   └── Discovery Engine ◄── Taste Profile
-                        (TMDB scan)           (plexlist.txt)
-```
-
-## Dependencies
-
-- Linux with systemd and Docker
-- Radarr, Sonarr, Prowlarr (Docker containers on a shared network)
-- Plex Media Server
-- qBittorrent (ideally two instances behind VPNs)
-- Python 3 (for scripts)
-- TMDB API key (free)
-- NVIDIA GPU optional (for hardware-accelerated Tdarr encoding)
-
-## Config Files
-
-| File | Purpose |
-|---|---|
-| `safeguards/rules.json` | Thresholds, limits, content filters |
-| `plexlist.txt` | Your content + taste seeds |
-| `taste/*.json` | Per-user genre/actor/director scores |
-| `systemd/` | All timer and service unit files |
-| `scripts/` | Automation scripts (drop-in, edit paths) |
-| `discovery/` | TMDB discovery engine with scoring |
+See [RECOVERY.md](docs/RECOVERY.md) for complete rebuild from bare metal.
 
 ## License
 
-MIT
+MIT — use freely, no warranty.
